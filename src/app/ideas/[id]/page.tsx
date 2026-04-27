@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { mockIdeas, mockComments, mockPrototypes } from "@/lib/mock-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { mockIdeas, mockComments, mockPrototypes, MockIdea } from "@/lib/mock-data";
 import {
   Heart,
   MessageCircle,
@@ -22,13 +30,66 @@ import {
   Globe,
   ExternalLink,
   ArrowLeft,
+  Reply,
+  X,
 } from "lucide-react";
+
+interface ProtoComment {
+  id: string;
+  author: { name: string; avatar: string };
+  content: string;
+  createdAt: string;
+  replyToId?: string;
+}
+
+const mockProtoComments: Record<string, ProtoComment[]> = {
+  p1: [
+    { id: "pc1", author: { name: "エンジニア大好き", avatar: "E" }, content: "すごい！早速触ってみました。動作サクサクで感動です。冷蔵庫の登録も簡単でした！", createdAt: "2026-04-26T09:00:00Z" },
+    { id: "pc2", author: { name: "田中 優子", avatar: "T" }, content: "ありがとうございます！バーコードスキャンがめっちゃ便利ですね。カメラ認識機能は今後追加予定ですか？", createdAt: "2026-04-26T10:30:00Z" },
+    { id: "pc3", author: { name: "プロトタイパー", avatar: "P" }, content: "ありがとうございます！カメラ認識は画像認識APIを使えばできそうですね。ちょっと試してみます🙏", createdAt: "2026-04-26T11:00:00Z", replyToId: "pc2" },
+  ],
+  p2: [
+    { id: "pc4", author: { name: "伊藤 翔", avatar: "I" }, content: "これ探してたやつです！Chromeで使えるのが嬉しい。友達とペアで使える機能が欲しいです。", createdAt: "2026-04-25T14:00:00Z" },
+  ],
+};
 
 export default function IdeaDetailPage() {
   const params = useParams();
   const idea = mockIdeas.find((i) => i.id === params.id) || mockIdeas[0];
   const comments = mockComments.filter((c) => c.ideaId === idea.id);
   const prototypes = mockPrototypes.filter((p) => p.ideaId === idea.id);
+
+  const [likedProtoIds, setLikedProtoIds] = useState<Set<string>>(new Set());
+  const [protoLocalLikes, setProtoLocalLikes] = useState<Record<string, number>>({});
+
+  const getProtoLikes = (protoId: string, baseLikes: number) =>
+    protoLocalLikes[protoId] ?? baseLikes;
+
+  const handleProtoLike = (protoId: string) => {
+    setLikedProtoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(protoId)) {
+        next.delete(protoId);
+        setProtoLocalLikes((l) => ({ ...l, [protoId]: (l[protoId] ?? mockPrototypes.find((p) => p.id === protoId)?.likes ?? 0) - 1 }));
+      } else {
+        next.add(protoId);
+        setProtoLocalLikes((l) => ({ ...l, [protoId]: (l[protoId] ?? mockPrototypes.find((p) => p.id === protoId)?.likes ?? 0) + 1 }));
+      }
+      return next;
+    });
+  };
+
+  // similar ideas: same tags, sorted by likes, exclude current
+  const similarIdeas = mockIdeas
+    .filter((i) => i.id !== idea.id && i.visibility === "public")
+    .map((i) => ({
+      ...i,
+      tagOverlap: i.tags.filter((t) => idea.tags.includes(t)).length,
+    }))
+    .filter((i) => i.tagOverlap > 0)
+    .sort((a, b) => b.likes - a.likes)
+    .slice(0, 3);
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6" key={params.id as string}>
       <div className="mx-auto max-w-4xl">
@@ -190,36 +251,13 @@ export default function IdeaDetailPage() {
               {prototypes.length > 0 ? (
                 <div className="space-y-4">
                   {prototypes.map((proto) => (
-                    <Card key={proto.id} className="p-5 grain-overlay">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
-                          <Globe className="h-5 w-5 text-accent" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold">{proto.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">{proto.description}</p>
-                          <div className="flex items-center gap-3 mt-3">
-                            <Link href={`/users/${proto.author.name}`} className="text-xs text-muted-foreground hover:underline flex items-center gap-1">
-                              <Avatar className="h-4 w-4">
-                                <AvatarFallback className="text-[8px]">{proto.author.avatar}</AvatarFallback>
-                              </Avatar>
-                              {proto.author.name}
-                            </Link>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Heart className="h-3 w-3 text-rose-500" /> {proto.likes}
-                            </span>
-                          </div>
-                          <div className="flex gap-3 mt-3">
-                            <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors">
-                              <GitFork className="h-3.5 w-3.5" /> GitHub
-                            </a>
-                            <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
-                              <ExternalLink className="h-3.5 w-3.5" /> Demo
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
+                    <ProtoCard
+                      key={proto.id}
+                      proto={proto}
+                      liked={likedProtoIds.has(proto.id)}
+                      likes={getProtoLikes(proto.id, proto.likes)}
+                      onLike={() => handleProtoLike(proto.id)}
+                    />
                   ))}
                 </div>
               ) : (
@@ -254,11 +292,6 @@ export default function IdeaDetailPage() {
           {/* Sidebar */}
           <div className="space-y-4">
             <Card className="p-5 grain-overlay">
-              <h3 className="font-bold text-sm mb-3">ステータス</h3>
-              <Badge className="rounded-full">
-                {idea.status === "open" ? "募集中" : idea.status === "in_progress" ? "制作中" : "実現済"}
-              </Badge>
-              <Separator className="my-3" />
               <h3 className="font-bold text-sm mb-3">投稿者</h3>
               <Link href={`/users/${idea.author.name}`} className="flex items-center gap-3 hover:underline">
                 <Avatar className="h-10 w-10">
@@ -272,9 +305,226 @@ export default function IdeaDetailPage() {
                 </div>
               </Link>
             </Card>
+
+            {/* Similar Ideas */}
+            {similarIdeas.length > 0 && (
+              <Card className="p-5 grain-overlay">
+                <h3 className="font-bold text-sm mb-3">似ているアイディア</h3>
+                <div className="space-y-3">
+                  {similarIdeas.map((si) => (
+                    <Link key={si.id} href={`/ideas/${si.id}`}>
+                      <div className="group rounded-xl p-3 hover:bg-muted transition-colors">
+                        <p className="text-sm font-bold group-hover:text-amber-600 dark:group-hover:text-amber-400 line-clamp-2">
+                          {si.title}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Heart className="h-3 w-3 text-rose-500" /> {si.likes}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MessageCircle className="h-3 w-3" /> {si.comments}
+                          </span>
+                          <span>{si.tagOverlap}タグ共通</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function ProtoCard({
+  proto,
+  liked,
+  likes,
+  onLike,
+}: {
+  proto: (typeof mockPrototypes)[number];
+  liked: boolean;
+  likes: number;
+  onLike: () => void;
+}) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const protoComments = mockProtoComments[proto.id] || [];
+  const [localComments, setLocalComments] = useState<ProtoComment[]>(protoComments);
+  const [newComment, setNewComment] = useState("");
+  const [replyToId, setReplyToId] = useState<string | null>(null);
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+    const comment: ProtoComment = {
+      id: `pc-local-${Date.now()}`,
+      author: { name: "ユーザー", avatar: "U" },
+      content: newComment.trim(),
+      createdAt: new Date().toISOString(),
+      replyToId: replyToId || undefined,
+    };
+    setLocalComments((prev) => [...prev, comment]);
+    setNewComment("");
+    setReplyToId(null);
+  };
+
+  const topLevelComments = localComments.filter((c) => !c.replyToId);
+  const repliesFor = (commentId: string) => localComments.filter((c) => c.replyToId === commentId);
+
+  return (
+    <>
+      <Card className="p-5 grain-overlay">
+        <div className="flex items-start gap-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+            <Globe className="h-5 w-5 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold">{proto.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{proto.description}</p>
+            <div className="flex items-center gap-3 mt-3">
+              <Link href={`/users/${proto.author.name}`} className="text-xs text-muted-foreground hover:underline flex items-center gap-1">
+                <Avatar className="h-4 w-4">
+                  <AvatarFallback className="text-[8px]">{proto.author.avatar}</AvatarFallback>
+                </Avatar>
+                {proto.author.name}
+              </Link>
+              <button onClick={onLike} className="text-xs text-muted-foreground hover:text-rose-500 transition-colors flex items-center gap-1">
+                <Heart className={`h-3 w-3 ${liked ? "fill-rose-500 text-rose-500" : ""}`} /> {likes}
+              </button>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              >
+                <MessageCircle className="h-3 w-3" />
+                {localComments.length}件のコメント
+              </button>
+            </div>
+            <div className="flex gap-3 mt-3">
+              <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors">
+                <GitFork className="h-3.5 w-3.5" /> GitHub
+              </a>
+              <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+                <ExternalLink className="h-3.5 w-3.5" /> Demo
+              </a>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Prototype Comment Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0">
+          <DialogHeader className="p-5 pb-0">
+            <DialogTitle className="text-lg">{proto.title}</DialogTitle>
+            <p className="text-sm text-muted-foreground">{proto.description}</p>
+          </DialogHeader>
+          <div className="p-5 pb-0 flex items-center gap-2">
+            <div className="flex gap-1.5">
+              {proto.demoUrl && (
+                <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="text-xs bg-accent text-accent-foreground px-3 py-1 rounded-full hover:opacity-90 inline-flex items-center gap-1">
+                  <ExternalLink className="h-3 w-3" /> Demo
+                </a>
+              )}
+              {proto.githubUrl && (
+                <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="text-xs bg-muted px-3 py-1 rounded-full hover:bg-muted/80 inline-flex items-center gap-1">
+                  <GitFork className="h-3 w-3" /> GitHub
+                </a>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground ml-auto">by {proto.author.name}</span>
+          </div>
+          <ScrollArea className="flex-1 p-5 max-h-[50vh]">
+            <div className="space-y-4">
+              {topLevelComments.map((comment) => (
+                <div key={comment.id}>
+                  <div className="flex gap-3">
+                    <Link href={`/users/${comment.author.name}`}>
+                      <Avatar className="h-7 w-7">
+                        <AvatarFallback className="text-[10px]">{comment.author.avatar}</AvatarFallback>
+                      </Avatar>
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <Link href={`/users/${comment.author.name}`} className="text-xs font-bold hover:underline">
+                          {comment.author.name}
+                        </Link>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(comment.createdAt).toLocaleDateString("ja-JP")}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{comment.content}</p>
+                      <button
+                        onClick={() => setReplyToId(replyToId === comment.id ? null : comment.id)}
+                        className="mt-1 text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                      >
+                        <Reply className="h-3 w-3" /> 返信
+                      </button>
+                    </div>
+                  </div>
+                  {/* Replies */}
+                  {repliesFor(comment.id).length > 0 && (
+                    <div className="ml-10 mt-2 space-y-2 border-l-2 border-muted pl-4">
+                      {repliesFor(comment.id).map((reply) => (
+                        <div key={reply.id} className="flex gap-2">
+                          <Link href={`/users/${reply.author.name}`}>
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[9px]">{reply.author.avatar}</AvatarFallback>
+                            </Avatar>
+                          </Link>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <Link href={`/users/${reply.author.name}`} className="text-xs font-bold hover:underline">
+                                {reply.author.name}
+                              </Link>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed">{reply.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {topLevelComments.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  まだコメントがありません。最初のコメントを書きましょう！
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+          {/* Comment Input */}
+          <div className="p-4 border-t bg-card">
+            {replyToId && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 p-2 bg-muted rounded-lg">
+                <Reply className="h-3 w-3" /> 返信を書いています...
+                <button onClick={() => setReplyToId(null)}>
+                  <X className="h-3 w-3 hover:text-foreground" />
+                </button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Textarea
+                placeholder={replyToId ? "返信を書く..." : "コメントを書く..."}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.shiftKey) {
+                    e.preventDefault();
+                    handleAddComment();
+                  }
+                }}
+                className="min-h-9 h-9 resize-none rounded-xl text-sm"
+                rows={1}
+              />
+              <Button size="icon" onClick={handleAddComment} disabled={!newComment.trim()} className="shrink-0 rounded-xl gradient-amber">
+                <Send className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
