@@ -33,22 +33,15 @@ export default function LandingPage() {
 
         <div className="mx-auto max-w-7xl px-4 pt-16 pb-20 sm:px-6 sm:pt-20 sm:pb-28 lg:pt-28 lg:pb-36">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              AIがあなたのアイディアを言語化します
-            </div>
-
             <h1 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-              あなたの
-              <span className="gradient-text">「不満」</span>
-              が
+              アイディア、集まる。
               <br />
-              アプリになる
+              <span className="gradient-text">未来、</span>始まる。
             </h1>
 
             <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
-              日常で感じる「ちょっと困った」が、誰かの起業アイディアに。
-              主婦、学生、会社員...みんなの不満を集めて、次のヒットアプリを生み出すプラットフォーム。
+              日常で感じるみんなの『こうなったらいいな』が集まる場所。
+              相互にひらめきを育んで、漠然とした想いを、確かな形にするプラットフォーム。
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
@@ -131,10 +124,10 @@ export default function LandingPage() {
       <section className="py-24 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight">
-            さあ、あなたの<span className="gradient-text">不満</span>を<br />シェアしよう
+            あなたの<span className="gradient-text">アイディアの種</span>を<br />シェアしよう
           </h2>
           <p className="mt-4 text-muted-foreground text-lg">
-            AIがあなたのぼやきを、アイディアの種に育てます。
+            AIがあなたのアイディアの言語化をサポートします。まずは気軽に話しかけてみてください。
           </p>
           <div className="mt-8">
             <Link href="/post">
