@@ -129,7 +129,7 @@ export default function IdeasFeedPage() {
             アイディアを探す
           </h1>
           <p className="mt-2 text-muted-foreground">
-            日常から生まれたアイディアの種を見つけよう
+            みんなの『こうなったらいいな』がここにある
           </p>
         </div>
 
@@ -146,7 +146,7 @@ export default function IdeasFeedPage() {
           </div>
           <Select value={sort} onValueChange={(v) => setSort(v || "likes")}>
             <SelectTrigger className="w-full sm:w-44 rounded-xl">
-              <SelectValue placeholder="並び替え" />
+              <SelectValue>{sortLabels[sort] || "並び替え"}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="likes">
@@ -162,7 +162,7 @@ export default function IdeasFeedPage() {
           </Select>
           <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v || "all")}>
             <SelectTrigger className="w-full sm:w-40 rounded-xl">
-              <SelectValue placeholder="ステータス" />
+              <SelectValue>{filterLabels[filterStatus] || "ステータス"}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">すべて</SelectItem>
