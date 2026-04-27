@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockUserProfile, mockIdeas, MockIdea } from "@/lib/mock-data";
+import { mockUserProfile, mockIdeas, mockPrototypes, MockIdea } from "@/lib/mock-data";
 import { IdeaCard } from "@/components/shared/idea-card";
 import {
   Lightbulb,
@@ -28,7 +28,8 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Clock,
+  GitFork,
+  ExternalLink,
 } from "lucide-react";
 
 const mockLikedIdeaIds = ["3", "5", "6", "10", "12"];
@@ -46,14 +47,7 @@ export default function ProfilePage() {
   const [tagFilter, setTagFilter] = useState("");
 
   const likedIdeas = mockIdeas.filter((i) => mockLikedIdeaIds.includes(i.id) && i.visibility === "public");
-
-  const totalPrototypes = useMemo(() => {
-    let count = 0;
-    ideas.forEach((idea) => {
-      count += (idea as any)._protoCount || 0;
-    });
-    return count;
-  }, [ideas]);
+  const myPrototypes = mockPrototypes.filter((p) => p.author.name === "ユーザー");
 
   const filteredIdeas = useMemo(() => {
     let filtered = showPrivate ? [...ideas] : ideas.filter((i) => i.visibility === "public");
@@ -91,6 +85,9 @@ export default function ProfilePage() {
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {totalComments} comments
                 </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Globe className="h-3.5 w-3.5 text-accent" /> {myPrototypes.length} apps
+                </span>
               </div>
             </div>
             <Link href="/post">
@@ -117,6 +114,13 @@ export default function ProfilePage() {
             >
               <Heart className="h-4 w-4 mr-1.5" />
               Liked
+            </TabsTrigger>
+            <TabsTrigger
+              value="apps"
+              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
+            >
+              <Globe className="h-4 w-4 mr-1.5" />
+              My Apps
             </TabsTrigger>
             <TabsTrigger
               value="comments"
@@ -182,6 +186,55 @@ export default function ProfilePage() {
             {likedIdeas.map((idea) => (
               <IdeaCard key={idea.id} idea={idea} showAuthor />
             ))}
+          </TabsContent>
+
+          {/* My Apps */}
+          <TabsContent value="apps" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{myPrototypes.length}件のプロトタイプ</span>
+            </div>
+            {myPrototypes.length > 0 ? (
+              myPrototypes.map((proto) => (
+                <Card key={proto.id} className="p-5 grain-overlay">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+                      <Globe className="h-5 w-5 text-accent" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/ideas/${proto.ideaId}`} className="font-bold hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+                        {proto.title}
+                      </Link>
+                      <p className="text-sm text-muted-foreground mt-1">{proto.description}</p>
+                      <div className="flex items-center gap-3 mt-3">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Heart className="h-3 w-3 text-rose-500" /> {proto.likes}
+                        </span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MessageCircle className="h-3 w-3" /> コメント
+                        </span>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        {proto.githubUrl && (
+                          <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors">
+                            <GitFork className="h-3.5 w-3.5" /> GitHub
+                          </a>
+                        )}
+                        {proto.demoUrl && (
+                          <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+                            <ExternalLink className="h-3.5 w-3.5" /> Demo
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ) : (
+              <Card className="p-12 text-center grain-overlay">
+                <Globe className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">まだプロトタイプがありません</p>
+              </Card>
+            )}
           </TabsContent>
 
           {/* My Comments */}
