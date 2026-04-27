@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -39,6 +40,7 @@ import {
 const FREE_VIEW_LIMIT = 20;
 
 export default function IdeasFeedPage() {
+  const router = useRouter();
   const [sort, setSort] = useState("likes");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -201,14 +203,17 @@ export default function IdeasFeedPage() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/30">
-                    <Link href={`/users/${idea.author.name}`} className="flex items-center gap-2 hover:underline" onClick={(e) => e.stopPropagation()}>
+                    <span
+                      className="flex items-center gap-2 hover:underline cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); router.push(`/users/${idea.author.name}`); }}
+                    >
                       <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
                           {idea.author.avatar}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-xs text-muted-foreground">{idea.author.name}</span>
-                    </Link>
+                    </span>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <button
                         onClick={(e) => handleToggleLike(e, idea)}
