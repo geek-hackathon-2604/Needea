@@ -378,6 +378,12 @@ export const mockUserProfile = {
     { ideaTitle: "子供の習い事の送迎をシェアできる仕組みが欲しい", action: "いいねしました", time: "1週間前" },
     { ideaTitle: "病院の待ち時間を有効活用したい", action: "プロトタイプを投稿しました", time: "2週間前" },
   ],
+  myComments: [
+    { ideaId: "1", ideaTitle: "冷蔵庫の中身を自動で管理してくれるアプリが欲しい", content: "これすごく共感します！うちも同じ悩みです。期限切れアラートがあるといいですね。", time: "2時間前", ideaAuthor: "田中 優子" },
+    { ideaId: "5", ideaTitle: "勉強中にスマホを触っちゃうのを強制的にブロックしたい", content: "友達とペアで制御するアイディアいいですね。自分も使ってみたいです。", time: "3日前", ideaAuthor: "伊藤 翔" },
+    { ideaId: "12", ideaTitle: "推し活の出費を自動で集計して予算管理したい", content: "推し活あるあるですね...遠征費の計算機能は需要ありそうです。", time: "1週間前", ideaAuthor: "小林 あかり" },
+    { ideaId: "10", ideaTitle: "自炊のレシピを冷蔵庫の残り物から提案してほしい", content: "冷蔵庫にあるもので作れるのは便利！ジャンルも選べるといいですね。", time: "2週間前", ideaAuthor: "松本 さくら" },
+  ],
 };
 
 export const mockOtherUser = {
