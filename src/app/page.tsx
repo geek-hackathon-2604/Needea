@@ -147,19 +147,7 @@ function IdeaCard({ idea, masked, index }: { idea: MockIdea; masked: boolean; in
   return (
     <Card className={`overflow-hidden card-hover grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500 ${masked ? "mask-blur" : ""}`} style={{ animationDelay: `${index * 100}ms` }}>
       <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <h3 className="font-bold text-lg leading-snug line-clamp-2">{idea.title}</h3>
-          {idea.status === "in_progress" && (
-            <Badge variant="secondary" className="shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
-              制作中
-            </Badge>
-          )}
-          {idea.status === "resolved" && (
-            <Badge variant="secondary" className="shrink-0 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300">
-              実現済
-            </Badge>
-          )}
-        </div>
+        <h3 className="font-bold text-lg leading-snug line-clamp-2 mb-3">{idea.title}</h3>
         <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{idea.content}</p>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {idea.tags.map((tag) => (

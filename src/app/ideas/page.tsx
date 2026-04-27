@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { mockIdeas, MockIdea, mockPrototypes } from "@/lib/mock-data";
+import { SORT_LABELS } from "@/lib/constants";
+import { formatDate } from "@/lib/utils";
 import {
   Heart,
   MessageCircle,
@@ -41,8 +43,7 @@ const FREE_VIEW_LIMIT = 20;
 
 export default function IdeasFeedPage() {
   const router = useRouter();
-  const [sort, setSort] = useState("likes");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [sort, setSort] = useState<keyof typeof SORT_LABELS>("likes");
   const [searchQuery, setSearchQuery] = useState("");
   const [showGate, setShowGate] = useState(false);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -50,12 +51,6 @@ export default function IdeasFeedPage() {
 
   const sorted = [...mockIdeas]
     .filter((idea) => idea.visibility === "public")
-    .filter((idea) => {
-      if (filterStatus === "open") return idea.status === "open";
-      if (filterStatus === "in_progress") return idea.status === "in_progress";
-      if (filterStatus === "resolved") return idea.status === "resolved";
-      return true;
-    })
     .filter((idea) => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
@@ -99,27 +94,9 @@ export default function IdeasFeedPage() {
     });
   };
 
-  const handleShowMore = () => {
-    setShowGate(true);
-  };
-
-  const sortLabels: Record<string, string> = {
-    likes: "共感順",
-    newest: "新着順",
-    unresolved: "未解決",
-  };
-
-  const filterLabels: Record<string, string> = {
-    all: "すべて",
-    open: "募集中",
-    in_progress: "制作中",
-    resolved: "実現済",
-  };
-
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-5 w-5 text-amber-500" />
@@ -135,7 +112,6 @@ export default function IdeasFeedPage() {
           </p>
         </div>
 
-        {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -146,9 +122,9 @@ export default function IdeasFeedPage() {
               className="pl-10 rounded-xl"
             />
           </div>
-          <Select value={sort} onValueChange={(v) => setSort(v || "likes")}>
+          <Select value={sort} onValueChange={(v) => setSort((v as keyof typeof SORT_LABELS) || "likes")}>
             <SelectTrigger className="w-full sm:w-44 rounded-xl">
-              <SelectValue>{sortLabels[sort] || "並び替え"}</SelectValue>
+              <SelectValue>{SORT_LABELS[sort] || "並び替え"}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="likes">
@@ -162,26 +138,13 @@ export default function IdeasFeedPage() {
               </SelectItem>
             </SelectContent>
           </Select>
-          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v || "all")}>
-            <SelectTrigger className="w-full sm:w-40 rounded-xl">
-              <SelectValue>{filterLabels[filterStatus] || "ステータス"}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">すべて</SelectItem>
-              <SelectItem value="open">募集中</SelectItem>
-              <SelectItem value="in_progress">制作中</SelectItem>
-              <SelectItem value="resolved">実現済</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
-        {/* Stats */}
         <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
           <span>{sorted.length}件のアイディア</span>
           <span>うち {visibleIdeas.length}件表示中</span>
         </div>
 
-        {/* Idea Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleIdeas.map((idea) => {
             const protoCount = getPrototypeCount(idea.id);
@@ -243,13 +206,12 @@ export default function IdeasFeedPage() {
           </div>
         )}
 
-        {/* Show More / Gate */}
         {hasMore && (
           <div className="mt-12 text-center">
             <p className="text-sm text-muted-foreground mb-4">
               さらにアイディアを見るには、1週間に1回アイディアを投稿してください
             </p>
-            <Button variant="outline" className="rounded-full gap-2" onClick={handleShowMore}>
+            <Button variant="outline" className="rounded-full gap-2" onClick={() => setShowGate(true)}>
               <Lock className="h-4 w-4" />
               もっと見る（あと {sorted.length - FREE_VIEW_LIMIT} 件）
             </Button>
@@ -257,7 +219,6 @@ export default function IdeasFeedPage() {
         )}
       </div>
 
-      {/* Post Gate Dialog */}
       <Dialog open={showGate} onOpenChange={setShowGate}>
         <DialogContent className="sm:max-w-md text-center p-8">
           <div className="flex justify-center mb-4">

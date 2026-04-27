@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockIdeas, mockComments, mockPrototypes, MockIdea } from "@/lib/mock-data";
+import { formatDate } from "@/lib/utils";
 import {
   Heart,
   MessageCircle,
@@ -120,7 +121,7 @@ export default function IdeaDetailPage() {
                 </Link>
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
-                  {new Date(idea.createdAt).toLocaleDateString("ja-JP")}
+                  {formatDate(idea.createdAt)}
                 </span>
                 {idea.visibility === "private" && (
                   <Badge variant="outline" className="text-xs rounded-full">非公開</Badge>
@@ -215,7 +216,7 @@ export default function IdeaDetailPage() {
                             {comment.author.name}
                           </Link>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(comment.createdAt).toLocaleDateString("ja-JP")}
+                            {formatDate(comment.createdAt)}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed">{comment.content}</p>
@@ -479,7 +480,7 @@ function ProtoCard({
                           {comment.author.name}
                         </Link>
                         <span className="text-[10px] text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleDateString("ja-JP")}
+                          {formatDate(comment.createdAt)}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">{comment.content}</p>

@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockUserProfile, mockIdeas, mockPrototypes, MockIdea } from "@/lib/mock-data";
+import { mockUserProfile, mockIdeas, mockPrototypes } from "@/lib/mock-data";
+import { SORT_LABELS } from "@/lib/constants";
 import { IdeaCard } from "@/components/shared/idea-card";
 import {
   Lightbulb,
@@ -33,11 +34,6 @@ import {
 } from "lucide-react";
 
 const mockLikedIdeaIds = ["3", "5", "6", "10", "12"];
-
-const sortLabels: Record<string, string> = {
-  likes: "共感順",
-  newest: "新着順",
-};
 
 export default function ProfilePage() {
   const { name, avatar, totalIdeas, totalLikes, totalComments, totalContributions, ideas, notifications, myComments } =
@@ -154,7 +150,7 @@ export default function ProfilePage() {
                 </div>
                 <Select value={sort} onValueChange={(v) => setSort(v || "likes")}>
                   <SelectTrigger className="h-8 w-28 rounded-xl text-xs">
-                    <SelectValue>{sortLabels[sort] || "並び替え"}</SelectValue>
+                    <SelectValue>{SORT_LABELS[sort as keyof typeof SORT_LABELS] || "並び替え"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="likes">共感順</SelectItem>

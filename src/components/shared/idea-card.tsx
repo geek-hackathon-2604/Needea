@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MockIdea, mockPrototypes } from "@/lib/mock-data";
+import { formatDate } from "@/lib/utils";
 import { Heart, MessageCircle, Clock, Globe, ChevronRight } from "lucide-react";
 
 interface IdeaCardProps {
@@ -55,7 +56,7 @@ export function IdeaCard({ idea, showAuthor = false, showChevron = true, classNa
           </span>
           <span className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
-            {new Date(idea.createdAt).toLocaleDateString("ja-JP")}
+            {formatDate(idea.createdAt)}
           </span>
         </div>
       </Card>

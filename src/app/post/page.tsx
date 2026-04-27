@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toggle } from "@/components/ui/toggle";
 import { mockIdeas } from "@/lib/mock-data";
+import { getAllTags, getTagUsageCount } from "@/lib/tags";
 import {
   Sparkles,
   Send,
@@ -31,17 +32,6 @@ const aiQuestions = [
 ];
 
 const initialTags = ["家事", "効率化", "主婦向け", "食品ロス"];
-
-// all available tags across all ideas for search
-function getAllTags(): string[] {
-  const tagSet = new Set<string>();
-  mockIdeas.forEach((idea) => idea.tags.forEach((t) => tagSet.add(t)));
-  return Array.from(tagSet).sort();
-}
-
-function getTagUsageCount(tag: string): number {
-  return mockIdeas.filter((idea) => idea.tags.includes(tag)).length;
-}
 
 export default function PostPage() {
   // input
