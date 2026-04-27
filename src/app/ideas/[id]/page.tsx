@@ -393,13 +393,6 @@ function ProtoCard({
               <button onClick={onLike} className="text-xs text-muted-foreground hover:text-rose-500 transition-colors flex items-center gap-1">
                 <Heart className={`h-3 w-3 ${liked ? "fill-rose-500 text-rose-500" : ""}`} /> {likes}
               </button>
-              <button
-                onClick={() => setModalOpen(true)}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-              >
-                <MessageCircle className="h-3 w-3" />
-                {localComments.length}件のコメント
-              </button>
             </div>
             <div className="flex gap-3 mt-3">
               <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors">
@@ -411,6 +404,41 @@ function ProtoCard({
             </div>
           </div>
         </div>
+
+        {/* Comment action — visually distinct, inviting */}
+        <Separator className="my-4" />
+        <button
+          onClick={() => setModalOpen(true)}
+          className="w-full group flex items-center justify-between rounded-xl px-4 py-3 bg-accent/5 hover:bg-accent/10 transition-all duration-300 border border-transparent hover:border-accent/20"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 group-hover:bg-accent/20 transition-colors">
+              <MessageCircle className="h-4 w-4 text-accent group-hover:scale-110 transition-transform" />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-bold">
+                {localComments.length > 0
+                  ? `${localComments.length}件のコメント`
+                  : "最初のコメントを書く"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {localComments.length > 0 ? "タップして会話に参加する" : "このプロトタイプについて感想を伝えよう"}
+              </p>
+            </div>
+          </div>
+          <div className="flex -space-x-2">
+            {[...new Set(localComments.map((c) => c.author.avatar))].slice(0, 3).map((av, i) => (
+              <Avatar key={i} className="h-6 w-6 ring-2 ring-background">
+                <AvatarFallback className="text-[9px] bg-accent/10 text-accent">{av}</AvatarFallback>
+              </Avatar>
+            ))}
+            {localComments.length > 0 && (
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 ring-2 ring-background">
+                <span className="text-[9px] font-bold text-accent">+{localComments.length}</span>
+              </div>
+            )}
+          </div>
+        </button>
       </Card>
 
       {/* Prototype Comment Modal */}
