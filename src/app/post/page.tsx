@@ -180,12 +180,18 @@ export default function PostPage() {
           />
 
           {!chatStarted && (
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-4 gap-3 flex-wrap">
               <span className="text-xs text-muted-foreground">文字数: {inputText.length}</span>
-              <Button onClick={handleStartChat} disabled={!inputText.trim()} className="rounded-full gap-2 gradient-amber">
-                <Sparkles className="h-4 w-4" />
-                AIヒアリングを始める
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" disabled={!inputText.trim()} className="rounded-full gap-2" onClick={() => { setIsPublic(false); }}>
+                  <EyeOff className="h-4 w-4" />
+                  非公開で保存
+                </Button>
+                <Button onClick={handleStartChat} disabled={!inputText.trim()} className="rounded-full gap-2 gradient-amber">
+                  <Sparkles className="h-4 w-4" />
+                  AIヒアリングを始める
+                </Button>
+              </div>
             </div>
           )}
         </Card>
@@ -229,7 +235,8 @@ export default function PostPage() {
           </Card>
         )}
 
-        {/* Tags */}
+        {/* Tags, Need, Visibility (shown after chat starts) */}
+        {chatStarted && (<>
         <Card className="p-5 sm:p-6 grain-overlay mb-6">
           <h3 className="font-bold text-sm mb-1">タグ</h3>
           <p className="text-xs text-muted-foreground mb-3">
@@ -350,13 +357,7 @@ export default function PostPage() {
             </Toggle>
           </div>
 
-          {!isPublic && !chatStarted && (
-            <p className="text-xs text-muted-foreground mb-4 p-3 bg-muted/50 rounded-xl">
-              非公開アイディアはAIヒアリングなしでも保存できます。自分だけのアイディアストックとしてご利用ください。
-            </p>
-          )}
-
-          {!isPublic && chatStarted && (
+          {!isPublic && (
             <p className="text-xs text-muted-foreground mb-4 p-3 bg-muted/50 rounded-xl">
               ヒアリング内容は保存されます。非公開なので他のユーザーには表示されません。
             </p>
@@ -367,20 +368,9 @@ export default function PostPage() {
               <Send className="h-4 w-4" />
               {isPublic ? "アイディアの種を投稿する" : "非公開で保存する"}
             </Button>
-            {!isPublic && !chatStarted && (
-              <Button variant="outline" disabled={!inputText.trim()} className="rounded-full gap-2">
-                <MessageCircle className="h-4 w-4" />
-                非公開で保存（ヒアリングスキップ）
-              </Button>
-            )}
-            {isPublic && (
-              <Button variant="outline" onClick={handleStartChat} disabled={!inputText.trim() || chatComplete} className="rounded-full gap-2">
-                <Sparkles className="h-4 w-4" />
-                AIヒアリングを始める
-              </Button>
-            )}
           </div>
         </Card>
+        </>)}
       </div>
     </div>
   );
