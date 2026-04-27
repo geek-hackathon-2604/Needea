@@ -89,7 +89,7 @@ export function Header() {
           <Link href="/post">
             <Button className="rounded-full gap-1.5 gradient-amber hover:opacity-90 transition-opacity shadow-md shadow-amber-500/20">
               <PlusCircle className="h-4 w-4" />
-              <span className="font-medium">Post Idea</span>
+              <span className="font-medium">新規投稿</span>
             </Button>
           </Link>
 
@@ -111,7 +111,7 @@ export function Header() {
               <DropdownMenuItem>
                 <Link href="/post" className="flex items-center gap-2 cursor-pointer">
                   <Lightbulb className="h-4 w-4" />
-                  Post Idea
+                  新規投稿
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="gap-2 text-muted-foreground cursor-pointer">
@@ -159,7 +159,7 @@ export function Header() {
                   <Link href="/post" onClick={() => setMobileOpen(false)}>
                     <Button className="w-full rounded-full gap-2 gradient-amber">
                       <PlusCircle className="h-4 w-4" />
-                      Post Idea
+                      新規投稿
                     </Button>
                   </Link>
                 </div>

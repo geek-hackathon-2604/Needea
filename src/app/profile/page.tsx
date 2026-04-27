@@ -1,36 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
-import { mockUserProfile } from "@/lib/mock-data";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { mockUserProfile, mockIdeas, mockPrototypes, MockIdea } from "@/lib/mock-data";
 import {
   Lightbulb,
   Heart,
   MessageCircle,
   Bell,
-  TrendingUp,
-  Send,
   Clock,
   ExternalLink,
   ChevronRight,
   Eye,
   EyeOff,
+  Globe,
+  Search,
+  GitFork,
 } from "lucide-react";
 
+// mock liked idea IDs
+const mockLikedIdeaIds = ["3", "5", "6", "10", "12"];
+
+const sortLabels: Record<string, string> = {
+  likes: "共感順",
+  newest: "新着順",
+};
+
 export default function ProfilePage() {
-  const { name, avatar, totalIdeas, totalLikes, totalComments, totalContributions, ideas, notifications, contributions } =
+  const { name, avatar, totalIdeas, totalLikes, totalComments, totalContributions, ideas, notifications } =
     mockUserProfile;
   const [showPrivate, setShowPrivate] = useState(false);
+  const [sort, setSort] = useState("likes");
+  const [tagFilter, setTagFilter] = useState("");
 
-  const filteredIdeas = showPrivate
-    ? ideas
-    : ideas.filter((idea) => idea.visibility === "public");
+  const userPrototypes = mockPrototypes.filter((p) => p.author.name === name);
+  const likedIdeas = mockIdeas.filter((i) => mockLikedIdeaIds.includes(i.id) && i.visibility === "public");
+  const totalPrototypes = userPrototypes.length;
+
+  const allUserTags = useMemo(() => {
+    const ts = new Set<string>();
+    ideas.forEach((i) => i.tags.forEach((t) => ts.add(t)));
+    return Array.from(ts).sort();
+  }, [ideas]);
+
+  const filteredIdeas = useMemo(() => {
+    let filtered = showPrivate ? [...ideas] : ideas.filter((i) => i.visibility === "public");
+    if (tagFilter) {
+      filtered = filtered.filter((i) => i.tags.some((t) => t.toLowerCase().includes(tagFilter.toLowerCase())));
+    }
+    return filtered.sort((a, b) => {
+      if (sort === "likes") return b.likes - a.likes;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [ideas, showPrivate, tagFilter, sort]);
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6">
@@ -47,7 +83,7 @@ export default function ProfilePage() {
             <div className="flex-1">
               <h1 className="text-2xl font-black tracking-tight">{name}</h1>
               <p className="text-sm text-muted-foreground mt-0.5">アイディアハブメンバー</p>
-              <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-4 mt-3 flex-wrap">
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Lightbulb className="h-3.5 w-3.5 text-amber-500" /> {totalIdeas} ideas
                 </span>
@@ -56,6 +92,9 @@ export default function ProfilePage() {
                 </span>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <MessageCircle className="h-3.5 w-3.5" /> {totalComments} comments
+                </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Globe className="h-3.5 w-3.5 text-accent" /> {totalPrototypes} prototypes
                 </span>
               </div>
             </div>
@@ -69,90 +108,135 @@ export default function ProfilePage() {
 
         {/* Tabs */}
         <Tabs defaultValue="ideas" className="space-y-6">
-          <TabsList className="w-full justify-start rounded-full p-1 bg-muted h-auto gap-0">
+          <TabsList className="w-full justify-start rounded-full p-1 bg-muted h-auto gap-0 flex-wrap">
             <TabsTrigger
               value="ideas"
-              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-5 py-2 text-sm"
+              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
             >
               <Lightbulb className="h-4 w-4 mr-1.5" />
               My Ideas
             </TabsTrigger>
             <TabsTrigger
+              value="liked"
+              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
+            >
+              <Heart className="h-4 w-4 mr-1.5" />
+              Liked
+            </TabsTrigger>
+            <TabsTrigger
+              value="prototypes"
+              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
+            >
+              <Globe className="h-4 w-4 mr-1.5" />
+              My Prototypes
+            </TabsTrigger>
+            <TabsTrigger
               value="feedback"
-              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-5 py-2 text-sm"
+              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
             >
               <Bell className="h-4 w-4 mr-1.5" />
               My Feedback
-            </TabsTrigger>
-            <TabsTrigger
-              value="contributions"
-              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-5 py-2 text-sm"
-            >
-              <TrendingUp className="h-4 w-4 mr-1.5" />
-              Contribution
             </TabsTrigger>
           </TabsList>
 
           {/* My Ideas */}
           <TabsContent value="ideas" className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
               <span className="text-sm text-muted-foreground">{filteredIdeas.length}件のアイディア</span>
-              <Toggle
-                pressed={showPrivate}
-                onPressedChange={setShowPrivate}
-                size="sm"
-                className="rounded-full gap-1.5 data-[state=on]:bg-muted"
-                aria-label="非公開のアイディアも表示"
-              >
-                {showPrivate ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                <span className="text-xs">{showPrivate ? "すべて表示" : "公開のみ"}</span>
-              </Toggle>
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="タグで絞り込む..."
+                    value={tagFilter}
+                    onChange={(e) => setTagFilter(e.target.value)}
+                    className="h-8 pl-8 rounded-xl text-xs w-40"
+                  />
+                </div>
+                <Select value={sort} onValueChange={(v) => setSort(v || "likes")}>
+                  <SelectTrigger className="h-8 w-28 rounded-xl text-xs">
+                    <SelectValue>{sortLabels[sort] || "並び替え"}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="likes">共感順</SelectItem>
+                    <SelectItem value="newest">新着順</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Toggle
+                  pressed={showPrivate}
+                  onPressedChange={setShowPrivate}
+                  size="sm"
+                  className="rounded-full gap-1 h-8 data-[state=on]:bg-muted"
+                  aria-label="非公開のアイディアも表示"
+                >
+                  {showPrivate ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  <span className="text-[11px]">{showPrivate ? "すべて" : "公開のみ"}</span>
+                </Toggle>
+              </div>
             </div>
             {filteredIdeas.map((idea) => (
-              <Link key={idea.id} href={`/ideas/${idea.id}`}>
-                <Card className="p-5 card-hover cursor-pointer grain-overlay">
-                  <div className="flex items-start justify-between gap-3">
+              <IdeaCard key={idea.id} idea={idea} />
+            ))}
+          </TabsContent>
+
+          {/* Liked Ideas */}
+          <TabsContent value="liked" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{likedIdeas.length}件のいいね</span>
+            </div>
+            {likedIdeas.map((idea) => (
+              <IdeaCard key={idea.id} idea={idea} />
+            ))}
+          </TabsContent>
+
+          {/* My Prototypes */}
+          <TabsContent value="prototypes" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{totalPrototypes}件のプロトタイプ</span>
+            </div>
+            {userPrototypes.length > 0 ? (
+              userPrototypes.map((proto) => (
+                <Card key={proto.id} className="p-5 grain-overlay">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
+                      <Globe className="h-5 w-5 text-accent" />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold leading-snug">{idea.title}</h3>
-                        {idea.visibility === "private" && (
-                          <Badge variant="outline" className="text-[10px] rounded-full shrink-0">
-                            <EyeOff className="h-2.5 w-2.5 mr-0.5" />非公開
-                          </Badge>
+                      <Link href={`/ideas/${proto.ideaId}`} className="font-bold hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+                        {proto.title}
+                      </Link>
+                      <p className="text-sm text-muted-foreground mt-1">{proto.description}</p>
+                      <div className="flex items-center gap-3 mt-3">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Heart className="h-3 w-3 text-rose-500" /> {proto.likes}
+                        </span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MessageCircle className="h-3 w-3" /> コメント
+                        </span>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        {proto.githubUrl && (
+                          <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors">
+                            <GitFork className="h-3.5 w-3.5" /> GitHub
+                          </a>
+                        )}
+                        {proto.demoUrl && (
+                          <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+                            <ExternalLink className="h-3.5 w-3.5" /> Demo
+                          </a>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{idea.content}</p>
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {idea.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs rounded-full bg-transparent">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
-                  </div>
-                  <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Heart className="h-3.5 w-3.5 text-rose-500" /> {idea.likes}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="h-3.5 w-3.5" /> {idea.comments}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {new Date(idea.createdAt).toLocaleDateString("ja-JP")}
-                    </span>
-                    {idea.status === "in_progress" && (
-                      <Badge variant="secondary" className="text-[10px] bg-amber-100 text-amber-700">制作中</Badge>
-                    )}
-                    {idea.status === "resolved" && (
-                      <Badge variant="secondary" className="text-[10px] bg-green-100 text-green-700">実現済</Badge>
-                    )}
                   </div>
                 </Card>
-              </Link>
-            ))}
+              ))
+            ) : (
+              <Card className="p-12 text-center grain-overlay">
+                <Globe className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">まだプロトタイプがありません</p>
+                <p className="text-xs text-muted-foreground mt-1">アイディアを投稿して、誰かが作ってくれるのを待ちましょう</p>
+              </Card>
+            )}
           </TabsContent>
 
           {/* My Feedback */}
@@ -184,46 +268,54 @@ export default function ProfilePage() {
               </Card>
             ))}
           </TabsContent>
-
-          {/* Contribution */}
-          <TabsContent value="contributions" className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <Card className="p-4 text-center grain-overlay">
-                <Lightbulb className="h-6 w-6 text-amber-500 mx-auto mb-2" />
-                <p className="text-2xl font-black">{totalIdeas}</p>
-                <p className="text-xs text-muted-foreground">投稿アイディア</p>
-              </Card>
-              <Card className="p-4 text-center grain-overlay">
-                <MessageCircle className="h-6 w-6 text-accent mx-auto mb-2" />
-                <p className="text-2xl font-black">{totalContributions}</p>
-                <p className="text-xs text-muted-foreground">フィードバック数</p>
-              </Card>
-              <Card className="p-4 text-center grain-overlay">
-                <Heart className="h-6 w-6 text-rose-500 mx-auto mb-2" />
-                <p className="text-2xl font-black">{totalLikes}</p>
-                <p className="text-xs text-muted-foreground">獲得いいね</p>
-              </Card>
-            </div>
-
-            <h3 className="font-bold text-lg mb-3">最近のアクティビティ</h3>
-            {contributions.map((contrib, i) => (
-              <Card key={i} className="p-4 grain-overlay">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                    <Send className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">
-                      「{contrib.ideaTitle}」に<span className="font-medium text-amber-600 dark:text-amber-400"> {contrib.action}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{contrib.time}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </TabsContent>
         </Tabs>
       </div>
     </div>
+  );
+}
+
+function IdeaCard({ idea }: { idea: MockIdea }) {
+  return (
+    <Link href={`/ideas/${idea.id}`}>
+      <Card className="p-5 card-hover cursor-pointer grain-overlay">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-bold leading-snug">{idea.title}</h3>
+              {idea.visibility === "private" ? (
+                <Badge variant="outline" className="text-[10px] rounded-full shrink-0 bg-muted">
+                  <EyeOff className="h-2.5 w-2.5 mr-0.5" />非公開
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] rounded-full shrink-0 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                  <Eye className="h-2.5 w-2.5 mr-0.5" />公開
+                </Badge>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{idea.content}</p>
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {idea.tags.map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs rounded-full bg-transparent">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
+        </div>
+        <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <Heart className="h-3.5 w-3.5 text-rose-500" /> {idea.likes}
+          </span>
+          <span className="flex items-center gap-1">
+            <MessageCircle className="h-3.5 w-3.5" /> {idea.comments}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5" />
+            {new Date(idea.createdAt).toLocaleDateString("ja-JP")}
+          </span>
+        </div>
+      </Card>
+    </Link>
   );
 }
