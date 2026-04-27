@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockIdeas, MockIdea } from "@/lib/mock-data";
+import { mockIdeas, MockIdea, mockPrototypes } from "@/lib/mock-data";
 import {
   Heart,
   MessageCircle,
@@ -33,15 +33,20 @@ import {
   AlertCircle,
   ArrowRight,
   Lock,
+  Globe,
 } from "lucide-react";
+
+const FREE_VIEW_LIMIT = 20;
 
 export default function IdeasFeedPage() {
   const [sort, setSort] = useState("likes");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [showGate, setShowGate] = useState(true);
+  const [showGate, setShowGate] = useState(false);
+  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [localLikes, setLocalLikes] = useState<Record<string, number>>({});
 
-  const filtered = mockIdeas
+  const sorted = [...mockIdeas]
     .filter((idea) => idea.visibility === "public")
     .filter((idea) => {
       if (filterStatus === "open") return idea.status === "open";
@@ -69,6 +74,46 @@ export default function IdeasFeedPage() {
       return 0;
     });
 
+  const visibleIdeas = sorted.slice(0, FREE_VIEW_LIMIT);
+  const hasMore = sorted.length > FREE_VIEW_LIMIT;
+
+  const getLikes = (idea: MockIdea) => localLikes[idea.id] ?? idea.likes;
+  const getPrototypeCount = (ideaId: string) =>
+    mockPrototypes.filter((p) => p.ideaId === ideaId).length;
+
+  const handleToggleLike = (e: React.MouseEvent, idea: MockIdea) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(idea.id)) {
+        next.delete(idea.id);
+        setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) - 1 }));
+      } else {
+        next.add(idea.id);
+        setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) + 1 }));
+      }
+      return next;
+    });
+  };
+
+  const handleShowMore = () => {
+    setShowGate(true);
+  };
+
+  const sortLabels: Record<string, string> = {
+    likes: "共感順",
+    newest: "新着順",
+    unresolved: "未解決",
+  };
+
+  const filterLabels: Record<string, string> = {
+    all: "すべて",
+    open: "募集中",
+    in_progress: "制作中",
+    resolved: "実現済",
+  };
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6">
       <div className="mx-auto max-w-7xl">
@@ -84,7 +129,7 @@ export default function IdeasFeedPage() {
             アイディアを探す
           </h1>
           <p className="mt-2 text-muted-foreground">
-            日常の不満から生まれたアイディアの種を見つけよう
+            日常から生まれたアイディアの種を見つけよう
           </p>
         </div>
 
@@ -101,7 +146,7 @@ export default function IdeasFeedPage() {
           </div>
           <Select value={sort} onValueChange={(v) => setSort(v || "likes")}>
             <SelectTrigger className="w-full sm:w-44 rounded-xl">
-              <SelectValue />
+              <SelectValue placeholder="並び替え" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="likes">
@@ -117,7 +162,7 @@ export default function IdeasFeedPage() {
           </Select>
           <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v || "all")}>
             <SelectTrigger className="w-full sm:w-40 rounded-xl">
-              <SelectValue />
+              <SelectValue placeholder="ステータス" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">すべて</SelectItem>
@@ -130,57 +175,79 @@ export default function IdeasFeedPage() {
 
         {/* Stats */}
         <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
-          <span>{filtered.length}件のアイディア</span>
+          <span>{sorted.length}件のアイディア</span>
+          <span>うち {visibleIdeas.length}件表示中</span>
         </div>
 
         {/* Idea Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((idea) => (
-            <Link key={idea.id} href={`/ideas/${idea.id}`}>
-              <Card className="overflow-hidden card-hover grain-overlay cursor-pointer h-full flex flex-col">
-                <div className="p-5 flex-1">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <h3 className="font-bold leading-snug line-clamp-2">{idea.title}</h3>
-                    <StatusBadge status={idea.status} />
+          {visibleIdeas.map((idea) => {
+            const protoCount = getPrototypeCount(idea.id);
+            const liked = likedIds.has(idea.id);
+            return (
+              <Link key={idea.id} href={`/ideas/${idea.id}`}>
+                <Card className="overflow-hidden card-hover grain-overlay cursor-pointer h-full flex flex-col">
+                  <div className="p-5 flex-1">
+                    <h3 className="font-bold leading-snug line-clamp-2 mb-3">{idea.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                      {idea.content}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {idea.tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs rounded-full bg-transparent">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                    {idea.content}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {idea.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs rounded-full bg-transparent">
-                        {tag}
-                      </Badge>
-                    ))}
+                  <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/30">
+                    <Link href={`/users/${idea.author.name}`} className="flex items-center gap-2 hover:underline" onClick={(e) => e.stopPropagation()}>
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
+                          {idea.author.avatar}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground">{idea.author.name}</span>
+                    </Link>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <button
+                        onClick={(e) => handleToggleLike(e, idea)}
+                        className="flex items-center gap-1 hover:text-rose-500 transition-colors"
+                      >
+                        <Heart className={`h-3.5 w-3.5 ${liked ? "fill-rose-500 text-rose-500" : ""}`} />
+                        {getLikes(idea)}
+                      </button>
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="h-3.5 w-3.5" /> {idea.comments}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Globe className="h-3.5 w-3.5" /> {protoCount}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/30">
-                  <Link href={`/users/${idea.author.name}`} className="flex items-center gap-2 hover:underline" onClick={(e) => e.stopPropagation()}>
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
-                        {idea.author.avatar}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-xs text-muted-foreground">{idea.author.name}</span>
-                  </Link>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Heart className="h-3.5 w-3.5 text-rose-500" /> {idea.likes}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="h-3.5 w-3.5" /> {idea.comments}
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            </Link>
-          ))}
+                </Card>
+              </Link>
+            );
+          })}
         </div>
 
-        {filtered.length === 0 && (
+        {visibleIdeas.length === 0 && (
           <div className="text-center py-20">
             <Search className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">条件に一致するアイディアが見つかりませんでした</p>
+          </div>
+        )}
+
+        {/* Show More / Gate */}
+        {hasMore && (
+          <div className="mt-12 text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              さらにアイディアを見るには、1週間に1回アイディアを投稿してください
+            </p>
+            <Button variant="outline" className="rounded-full gap-2" onClick={handleShowMore}>
+              <Lock className="h-4 w-4" />
+              もっと見る（あと {sorted.length - FREE_VIEW_LIMIT} 件）
+            </Button>
           </div>
         )}
       </div>
@@ -196,10 +263,10 @@ export default function IdeasFeedPage() {
           <DialogHeader>
             <DialogTitle className="text-xl font-black">Give & Take の精神で</DialogTitle>
             <DialogDescription className="text-muted-foreground text-sm leading-relaxed pt-2">
-              アイディアを見る前に、まずはあなたの不満やアイディアを1つシェアしてください。
+              アイディアをもっと見るには、1週間に1回、あなたのアイディアの種を1つ投稿してください。
               <br />
               <br />
-              あなたの小さな「困った」が、誰かの大きなアイディアの種になります。
+              みんなの「こうなったらいいな」が集まる場所を、一緒に育てていきましょう。
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3 mt-4">
@@ -211,27 +278,11 @@ export default function IdeasFeedPage() {
               </Button>
             </Link>
             <Button variant="ghost" onClick={() => setShowGate(false)} className="text-muted-foreground text-sm">
-              スキップする（一部のみ表示）
+              今はスキップ
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: MockIdea["status"] }) {
-  if (status === "open") return null;
-  if (status === "in_progress") {
-    return (
-      <Badge variant="secondary" className="shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 text-xs">
-        制作中
-      </Badge>
-    );
-  }
-  return (
-    <Badge variant="secondary" className="shrink-0 bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 text-xs">
-      実現済
-    </Badge>
   );
 }
