@@ -50,7 +50,7 @@ export function Header() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <span className="font-heading text-xl font-black tracking-tight">
-            Idea<span className="gradient-text">Hub</span>
+            <span className="gradient-text">Needia</span>
           </span>
         </Link>
 
