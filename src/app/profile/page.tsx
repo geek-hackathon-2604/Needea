@@ -170,7 +170,7 @@ export default function ProfilePage() {
               </div>
             </div>
             {filteredIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} showVisibility />
+              <IdeaCard key={idea.id} idea={idea} />
             ))}
           </TabsContent>
 
@@ -180,7 +180,7 @@ export default function ProfilePage() {
               <span className="text-sm text-muted-foreground">{likedIdeas.length}件のいいね</span>
             </div>
             {likedIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} showVisibility={false} showAuthor />
+              <IdeaCard key={idea.id} idea={idea} showAuthor />
             ))}
           </TabsContent>
 
