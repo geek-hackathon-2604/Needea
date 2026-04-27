@@ -136,10 +136,8 @@ export function Header() {
           </Button>
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="Open menu">
-                <Menu className="h-5 w-5" />
-              </Button>
+            <SheetTrigger className="inline-flex items-center justify-center rounded-full p-2 hover:bg-muted transition-colors" aria-label="Open menu">
+              <Menu className="h-5 w-5" />
             </SheetTrigger>
             <SheetContent side="right" className="w-72 pt-12">
               <nav className="flex flex-col gap-1">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Noto_Sans_JP, M_PLUS_Rounded_1c, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,9 +25,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Idea Hub — あなたの『不満』がアプリになる",
+  title: "Needia — アイディア、集まる。未来、始まる。",
   description:
-    "日常の不満やアイディアを共有し、ハッカソンや起業の種を見つけるプラットフォーム。AIがあなたのアイディアを言語化します。",
+    "日常で感じるみんなの『こうなったらいいな』が集まる場所。相互にひらめきを育んで、漠然とした想いを、確かな形にするプラットフォーム。",
 };
 
 export default function RootLayout({
@@ -41,18 +42,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const theme = localStorage.getItem('theme');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
+        <Script id="theme-script" strategy="beforeInteractive">
+          {`try {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+              document.documentElement.classList.add('dark');
+            }
+          } catch (e) {}`}
+        </Script>
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
