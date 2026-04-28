@@ -206,7 +206,7 @@ export default function IdeasFeedPage() {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <button
                         onClick={(e) => handleToggleLike(e, idea)}
-                        className="flex items-center gap-1 hover:text-rose-500 transition-colors"
+                        className="cursor-pointer flex items-center gap-1 hover:text-rose-500 transition-colors"
                       >
                         <Heart
                           className={`h-3.5 w-3.5 text-rose-500 ${liked ? "fill-rose-500 " : ""}`}
