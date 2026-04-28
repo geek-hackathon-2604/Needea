@@ -88,8 +88,8 @@ export default function ProfilePage() {
   }, [ideas, showPrivate, tagFilter, sort]);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6">
-      <div className="mx-auto max-w-4xl">
+    <div className="min-h-full px-4 sm:px-6">
+      <div className="mx-auto max-w-4xl my-8">
         {/* Profile Header */}
         <Card className="p-6 sm:p-8 mb-8 grain-overlay overflow-hidden relative ">
           <div className="absolute top-0 left-0 right-0 h-full gradient-amber opacity-20 dark:opacity-10" />

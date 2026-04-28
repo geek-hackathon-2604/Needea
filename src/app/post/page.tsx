@@ -151,8 +151,8 @@ export default function PostPage() {
     inputText.trim() && tags.length >= 3 && (isPublic ? chatComplete : true);
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6">
-      <div className="mx-auto max-w-3xl">
+    <div className="min-h-full px-4 sm:px-6">
+      <div className="mx-auto max-w-3xl mt-16 mb-8">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground mb-6">
