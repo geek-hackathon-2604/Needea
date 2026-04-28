@@ -476,6 +476,14 @@ function TypingIndicator() {
 
 function ChatInput({ onSend }: { onSend: (msg: string) => void }) {
   const [value, setValue] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [value]);
 
   const handleSubmit = () => {
     if (!value.trim()) return;
@@ -485,8 +493,9 @@ function ChatInput({ onSend }: { onSend: (msg: string) => void }) {
 
   return (
     <div className="p-4 border-t bg-card">
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-end">
         <Textarea
+          ref={textareaRef}
           placeholder="Shift+Enter で送信 / Enter で改行"
           value={value}
           onChange={(e) => setValue(e.target.value)}
@@ -496,7 +505,7 @@ function ChatInput({ onSend }: { onSend: (msg: string) => void }) {
               handleSubmit();
             }
           }}
-          className="min-h-0 h-10 resize-none rounded-xl text-sm"
+          className="min-h-10 max-h-40 resize-none rounded-xl text-sm overflow-y-auto"
           rows={1}
         />
         <Button
