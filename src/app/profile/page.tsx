@@ -208,7 +208,7 @@ export default function ProfilePage() {
       <div className="min-h-full flex items-center justify-center">
         <Card className="p-8 text-center">
           <p className="text-muted-foreground mb-4">ログインが必要です</p>
-          <Link href="/post">
+          <Link href="/auth/login">
             <Button className="rounded-full gradient-amber">ログインする</Button>
           </Link>
         </Card>

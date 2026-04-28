@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { createClient } from "@/lib/supabase/client";
 import {
   Lightbulb,
   Menu,
@@ -22,6 +23,7 @@ import {
   Moon,
   LogOut,
   Sparkles,
+  LogIn,
 } from "lucide-react";
 
 const navLinks = [
@@ -33,8 +35,27 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [userInitial, setUserInitial] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase.from("profiles").select("name").eq("id", user.id).single()
+          .then(({ data }) => setUserInitial(data?.name?.charAt(0).toUpperCase() ?? "U"));
+      }
+    });
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUserInitial(null);
+    router.push("/");
+    router.refresh();
+  };
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -93,33 +114,42 @@ export function Header() {
             </Button>
           </Link>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Avatar className="h-8 w-8 ring-2 ring-amber-200 dark:ring-amber-800 cursor-pointer">
-                <AvatarFallback className="bg-amber-100 text-amber-700 text-xs font-bold dark:bg-amber-900 dark:text-amber-300">
-                  U
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>
-                <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
-                  <User className="h-4 w-4" />
-                  My Page
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/post" className="flex items-center gap-2 cursor-pointer">
-                  <Lightbulb className="h-4 w-4" />
-                  新規投稿
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-muted-foreground cursor-pointer">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {userInitial ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Avatar className="h-8 w-8 ring-2 ring-amber-200 dark:ring-amber-800 cursor-pointer">
+                  <AvatarFallback className="bg-amber-100 text-amber-700 text-xs font-bold dark:bg-amber-900 dark:text-amber-300">
+                    {userInitial}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem>
+                  <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                    <User className="h-4 w-4" />
+                    My Page
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/post" className="flex items-center gap-2 cursor-pointer">
+                    <Lightbulb className="h-4 w-4" />
+                    新規投稿
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-muted-foreground cursor-pointer">
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/auth/login">
+              <Button variant="outline" size="sm" className="rounded-full gap-1.5">
+                <LogIn className="h-3.5 w-3.5" />
+                ログイン
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobile Nav */}
