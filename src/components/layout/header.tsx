@@ -50,7 +50,7 @@ export function Header() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <span className="font-heading text-xl font-black tracking-tight">
-            Idea<span className="gradient-text">Hub</span>
+            <span className="gradient-text">Needia</span>
           </span>
         </Link>
 
@@ -89,7 +89,7 @@ export function Header() {
           <Link href="/post">
             <Button className="rounded-full gap-1.5 gradient-amber hover:opacity-90 transition-opacity shadow-md shadow-amber-500/20">
               <PlusCircle className="h-4 w-4" />
-              <span className="font-medium">Post Idea</span>
+              <span className="font-medium">新規投稿</span>
             </Button>
           </Link>
 
@@ -111,7 +111,7 @@ export function Header() {
               <DropdownMenuItem>
                 <Link href="/post" className="flex items-center gap-2 cursor-pointer">
                   <Lightbulb className="h-4 w-4" />
-                  Post Idea
+                  新規投稿
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="gap-2 text-muted-foreground cursor-pointer">
@@ -136,10 +136,8 @@ export function Header() {
           </Button>
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="Open menu">
-                <Menu className="h-5 w-5" />
-              </Button>
+            <SheetTrigger className="inline-flex items-center justify-center rounded-full p-2 hover:bg-muted transition-colors" aria-label="Open menu">
+              <Menu className="h-5 w-5" />
             </SheetTrigger>
             <SheetContent side="right" className="w-72 pt-12">
               <nav className="flex flex-col gap-1">
@@ -161,7 +159,7 @@ export function Header() {
                   <Link href="/post" onClick={() => setMobileOpen(false)}>
                     <Button className="w-full rounded-full gap-2 gradient-amber">
                       <PlusCircle className="h-4 w-4" />
-                      Post Idea
+                      新規投稿
                     </Button>
                   </Link>
                 </div>
