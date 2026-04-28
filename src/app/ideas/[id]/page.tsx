@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { mockIdeas, mockComments, mockPrototypes, MockIdea } from "@/lib/mock-data";
+import { mockIdeas, mockComments, mockPrototypes } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
 import {
   Heart,
@@ -33,6 +33,7 @@ import {
   ArrowLeft,
   Reply,
   X,
+  Star,
 } from "lucide-react";
 
 interface ProtoComment {
@@ -292,6 +293,26 @@ export default function IdeaDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-4">
+            <Card className="p-5 grain-overlay">
+              <h3 className="font-bold text-sm mb-2">Need 度</h3>
+              <p className="text-xs text-muted-foreground mb-3">投稿者の困り度・重要度</p>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((level) => (
+                  <Star
+                    key={level}
+                    className={`h-6 w-6 ${level <= idea.needLevel ? "fill-amber-400 text-amber-400" : "text-muted-foreground/20"}`}
+                  />
+                ))}
+                <span className="ml-2 text-sm text-muted-foreground whitespace-nowrap">
+                  {idea.needLevel === 1 && "ちょっと気になる"}
+                  {idea.needLevel === 2 && "少し困っている"}
+                  {idea.needLevel === 3 && "まあまあ重要"}
+                  {idea.needLevel === 4 && "かなり重要"}
+                  {idea.needLevel === 5 && "めっちゃ欲しい！"}
+                </span>
+              </div>
+            </Card>
+
             <Card className="p-5 grain-overlay">
               <h3 className="font-bold text-sm mb-3">投稿者</h3>
               <Link href={`/users/${idea.author.name}`} className="flex items-center gap-3 hover:underline">
