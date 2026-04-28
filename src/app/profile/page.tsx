@@ -110,6 +110,7 @@ function likedToMockIdea(idea: LikedIdea): MockIdea {
 export default function ProfilePage() {
   const supabase = createClient();
   const [profile, setProfile] = useState<{ name: string; avatar_url: string | null } | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [ideas, setIdeas] = useState<DbIdea[]>([]);
   const [likedIdeas, setLikedIdeas] = useState<LikedIdea[]>([]);
   const [myComments, setMyComments] = useState<DbComment[]>([]);
@@ -121,7 +122,8 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      if (!user) { setIsAuthenticated(false); setLoading(false); return; }
+      setIsAuthenticated(true);
 
       const [profileRes, ideasRes, commentsRes, likedRes] = await Promise.all([
         supabase.from("profiles").select("name, avatar_url").eq("id", user.id).single(),
@@ -201,7 +203,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (isAuthenticated === false) {
     return (
       <div className="min-h-full flex items-center justify-center">
         <Card className="p-8 text-center">
