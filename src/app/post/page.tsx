@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,8 @@ import {
   EyeOff,
   RefreshCw,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
 const aiQuestions = [
   "面白い視点ですね！もう少し具体的に教えてください。どんな時にそれを感じますか？",
@@ -32,6 +35,10 @@ const aiQuestions = [
 const initialTags = ["家事", "効率化", "主婦向け", "食品ロス"];
 
 export default function PostPage() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [isPosting, setIsPosting] = useState(false);
+
   // input
   const [inputText, setInputText] = useState("");
 
@@ -149,6 +156,37 @@ export default function PostPage() {
 
   const canPost =
     inputText.trim() && tags.length >= 3 && (isPublic ? chatComplete : true);
+
+  const handlePost = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { toast.error("ログインが必要です"); return; }
+
+    setIsPosting(true);
+    const title = inputText.split(/[。\n]/)[0].slice(0, 100) || inputText.slice(0, 100);
+    const chatHistory = chatMessages
+      .reduce<{ question: string; answer: string }[]>((acc, msg, i, arr) => {
+        if (msg.role === "ai" && arr[i + 1]?.role === "user") {
+          acc.push({ question: msg.content, answer: arr[i + 1].content });
+        }
+        return acc;
+      }, []);
+
+    const { data, error } = await supabase.from("ideas").insert({
+      user_id: user.id,
+      title,
+      content: inputText,
+      chat_history: chatHistory,
+      tags,
+      need_level: needLevel || 3,
+      visibility: isPublic ? "public" : "private",
+      status: "open",
+    }).select("id").single();
+
+    setIsPosting(false);
+    if (error) { toast.error("投稿に失敗しました"); return; }
+    toast.success("投稿しました！");
+    router.push(`/ideas/${data.id}`);
+  };
 
   return (
     <div className="min-h-full px-4 sm:px-6">
@@ -407,11 +445,12 @@ export default function PostPage() {
 
               <div className="flex flex-wrap gap-3">
                 <Button
-                  disabled={!canPost}
+                  disabled={!canPost || isPosting}
+                  onClick={handlePost}
                   className="rounded-full gap-2 gradient-amber shadow-lg shadow-amber-500/25"
                 >
                   <Send className="h-4 w-4" />
-                  {isPublic ? "アイディアの種を投稿する" : "非公開で保存する"}
+                  {isPosting ? "投稿中..." : isPublic ? "アイディアの種を投稿する" : "非公開で保存する"}
                 </Button>
               </div>
             </Card>
