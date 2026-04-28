@@ -19,6 +19,7 @@ export const mockIdeas = [
     createdAt: "2026-04-25T08:30:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "2",
@@ -39,6 +40,7 @@ export const mockIdeas = [
     createdAt: "2026-04-24T18:15:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
   {
     id: "3",
@@ -60,6 +62,7 @@ export const mockIdeas = [
     createdAt: "2026-04-23T12:00:00Z",
     status: "in_progress" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "4",
@@ -80,6 +83,7 @@ export const mockIdeas = [
     createdAt: "2026-04-22T09:45:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
   {
     id: "5",
@@ -100,6 +104,7 @@ export const mockIdeas = [
     createdAt: "2026-04-21T22:30:00Z",
     status: "resolved" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "6",
@@ -121,6 +126,7 @@ export const mockIdeas = [
     createdAt: "2026-04-20T15:00:00Z",
     status: "open" as const,
     visibility: "private" as const,
+    needLevel: 3,
   },
   {
     id: "7",
@@ -141,6 +147,7 @@ export const mockIdeas = [
     createdAt: "2026-04-26T10:00:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
   {
     id: "8",
@@ -161,6 +168,7 @@ export const mockIdeas = [
     createdAt: "2026-04-26T09:15:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 3,
   },
   {
     id: "9",
@@ -182,6 +190,7 @@ export const mockIdeas = [
     createdAt: "2026-04-26T14:30:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 2,
   },
   {
     id: "10",
@@ -202,6 +211,7 @@ export const mockIdeas = [
     createdAt: "2026-04-25T19:00:00Z",
     status: "in_progress" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
   {
     id: "11",
@@ -222,6 +232,7 @@ export const mockIdeas = [
     createdAt: "2026-04-24T11:20:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 3,
   },
   {
     id: "12",
@@ -242,6 +253,7 @@ export const mockIdeas = [
     createdAt: "2026-04-23T21:30:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "13",
@@ -262,6 +274,7 @@ export const mockIdeas = [
     createdAt: "2026-04-22T16:45:00Z",
     status: "resolved" as const,
     visibility: "public" as const,
+    needLevel: 2,
   },
   {
     id: "14",
@@ -282,6 +295,7 @@ export const mockIdeas = [
     createdAt: "2026-04-21T07:00:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
 ];
 
@@ -305,6 +319,7 @@ export interface MockIdea {
   createdAt: string;
   status: "open" | "in_progress" | "resolved";
   visibility: "public" | "private";
+  needLevel: 1 | 2 | 3 | 4 | 5;
 }
 
 export const mockComments = [
