@@ -71,7 +71,7 @@ export function Header() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <span className="font-heading text-xl font-black tracking-tight">
-            <span className="gradient-text">Needia</span>
+            <span className="gradient-text">Needea</span>
           </span>
         </Link>
 

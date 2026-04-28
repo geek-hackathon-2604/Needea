@@ -41,7 +41,7 @@ export default function LoginPage() {
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl gradient-amber shadow-lg shadow-amber-500/25 mb-4">
             <Sparkles className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-2xl font-black tracking-tight">Needia</h1>
+          <h1 className="text-2xl font-black tracking-tight">Needea</h1>
           <p className="text-sm text-muted-foreground mt-1">
             ログインしてアイディアをシェアしよう
           </p>
