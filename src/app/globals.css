@@ -158,6 +158,9 @@
     transform: translateY(-2px);
     box-shadow: 0 8px 12px -8px oklch(0.68 0.17 75 / 0.35);
   }
+  .dark &:hover {
+    box-shadow: 0 8px 16px -8px oklch(0 0 0 / 0.5);
+  }
 }
 
 @utility mask-blur {
