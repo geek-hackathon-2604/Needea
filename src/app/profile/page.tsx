@@ -21,6 +21,7 @@ import { SORT_LABELS } from "@/lib/constants";
 import { IdeaCard } from "@/components/shared/idea-card";
 import {
   Lightbulb,
+  PlusCircle,
   Heart,
   MessageCircle,
   Bell,
@@ -111,7 +112,7 @@ export default function ProfilePage() {
             </div>
             <Link href="/post">
               <Button className="rounded-full gap-2 gradient-amber shadow-lg shadow-amber-500/25">
-                <Lightbulb className="h-4 w-4" /> 新規投稿
+                <PlusCircle className="h-4 w-4" /> 新規投稿
               </Button>
             </Link>
           </div>
