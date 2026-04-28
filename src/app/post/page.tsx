@@ -283,7 +283,7 @@ export default function PostPage() {
                     <button
                       onClick={() => handleRemoveTag(tag)}
                       disabled={tags.length <= 3}
-                      className="ml-0.5 rounded-full p-0.5 hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="ml-0.5 cursor-pointer rounded-full p-0.5 hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       aria-label={`${tag}を削除`}
                     >
                       <X className="h-3 w-3" />
@@ -321,7 +321,7 @@ export default function PostPage() {
                       <button
                         key={s}
                         onClick={() => handleAddTag(s)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors"
+                        className="w-full cursor-pointer flex items-center justify-between px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors"
                       >
                         <span>{s}</span>
                         <span className="text-xs text-muted-foreground">
@@ -345,7 +345,7 @@ export default function PostPage() {
                   <button
                     key={level}
                     onClick={() => setNeedLevel(level)}
-                    className="p-1 transition-all hover:scale-110"
+                    className="cursor-pointer p-1 transition-all hover:scale-110"
                     aria-label={`Need度 ${level}`}
                   >
                     <Star

@@ -391,7 +391,7 @@ function ProtoCard({
                 </Avatar>
                 {proto.author.name}
               </Link>
-              <button onClick={onLike} className="text-xs text-muted-foreground hover:text-rose-500 transition-colors flex items-center gap-1">
+              <button onClick={onLike} className="cursor-pointer text-xs text-muted-foreground hover:text-rose-500 transition-colors flex items-center gap-1">
                 <Heart className={`h-3 w-3 ${liked ? "fill-rose-500 text-rose-500" : ""}`} /> {likes}
               </button>
             </div>
@@ -410,7 +410,7 @@ function ProtoCard({
         <Separator className="my-4" />
         <button
           onClick={() => setModalOpen(true)}
-          className="w-full group flex items-center justify-between rounded-xl px-4 py-3 bg-accent/5 hover:bg-accent/10 transition-all duration-300 border border-transparent hover:border-accent/20"
+          className="cursor-pointer w-full group flex items-center justify-between rounded-xl px-4 py-3 bg-accent/5 hover:bg-accent/10 transition-all duration-300 border border-transparent hover:border-accent/20"
         >
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/10 group-hover:bg-accent/20 transition-colors">
@@ -486,7 +486,7 @@ function ProtoCard({
                       <p className="text-sm text-muted-foreground leading-relaxed">{comment.content}</p>
                       <button
                         onClick={() => setReplyToId(replyToId === comment.id ? null : comment.id)}
-                        className="mt-1 text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                        className="cursor-pointer mt-1 text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
                       >
                         <Reply className="h-3 w-3" /> 返信
                       </button>
@@ -528,7 +528,7 @@ function ProtoCard({
             {replyToId && (
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 p-2 bg-muted rounded-lg">
                 <Reply className="h-3 w-3" /> 返信を書いています...
-                <button onClick={() => setReplyToId(null)}>
+                <button onClick={() => setReplyToId(null)} className="cursor-pointer">
                   <X className="h-3 w-3 hover:text-foreground" />
                 </button>
               </div>
