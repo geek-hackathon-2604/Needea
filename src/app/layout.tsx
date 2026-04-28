@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Needia — アイディア、集まる。未来、始まる。",
+  title: "Needea — アイディア、集まる。未来、始まる。",
   description:
     "日常で感じるみんなの『こうなったらいいな』が集まる場所。相互にひらめきを育んで、漠然とした想いを、確かな形にするプラットフォーム。",
   icons: {
