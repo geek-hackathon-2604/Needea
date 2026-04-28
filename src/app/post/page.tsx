@@ -268,7 +268,7 @@ export default function PostPage() {
         {/* Tags, Need, Visibility (shown after chat starts) */}
         {chatStarted && (
           <>
-            <Card className="p-5 sm:p-6 grain-overlay mb-6">
+            <Card className="p-5 sm:p-6 grain-overlay mb-6 overflow-visible">
               <h3 className="font-bold text-sm mb-1">タグ</h3>
               <p className="text-xs text-muted-foreground mb-3">
                 最低3つ必要です。AIが自動で候補を提案します。編集もできます。
