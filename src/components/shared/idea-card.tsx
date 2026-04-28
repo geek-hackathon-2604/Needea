@@ -20,7 +20,7 @@ export function IdeaCard({ idea, showAuthor = false, showChevron = true, classNa
   return (
     <Link href={`/ideas/${idea.id}`}>
       <Card
-        className={`p-5 card-hover cursor-pointer grain-overlay ${isPrivate ? "bg-muted/30 border-dashed" : ""} ${className || ""}`}
+        className={`p-5 card-hover cursor-pointer grain-overlay ${isPrivate ? "bg-muted/30 border border-dashed border-muted-foreground/40" : ""} ${className || ""}`}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
