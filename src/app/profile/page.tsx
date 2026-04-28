@@ -36,19 +36,36 @@ import {
 const mockLikedIdeaIds = ["3", "5", "6", "10", "12"];
 
 export default function ProfilePage() {
-  const { name, avatar, totalIdeas, totalLikes, totalComments, totalContributions, ideas, notifications, myComments } =
-    mockUserProfile;
+  const {
+    name,
+    avatar,
+    totalIdeas,
+    totalLikes,
+    totalComments,
+    totalContributions,
+    ideas,
+    notifications,
+    myComments,
+  } = mockUserProfile;
   const [showPrivate, setShowPrivate] = useState(false);
   const [sort, setSort] = useState("likes");
   const [tagFilter, setTagFilter] = useState("");
 
-  const likedIdeas = mockIdeas.filter((i) => mockLikedIdeaIds.includes(i.id) && i.visibility === "public");
-  const myPrototypes = mockPrototypes.filter((p) => p.author.name === "ユーザー");
+  const likedIdeas = mockIdeas.filter(
+    (i) => mockLikedIdeaIds.includes(i.id) && i.visibility === "public",
+  );
+  const myPrototypes = mockPrototypes.filter(
+    (p) => p.author.name === "ユーザー",
+  );
 
   const filteredIdeas = useMemo(() => {
-    let filtered = showPrivate ? [...ideas] : ideas.filter((i) => i.visibility === "public");
+    let filtered = showPrivate
+      ? [...ideas]
+      : ideas.filter((i) => i.visibility === "public");
     if (tagFilter) {
-      filtered = filtered.filter((i) => i.tags.some((t) => t.toLowerCase().includes(tagFilter.toLowerCase())));
+      filtered = filtered.filter((i) =>
+        i.tags.some((t) => t.toLowerCase().includes(tagFilter.toLowerCase())),
+      );
     }
     return filtered.sort((a, b) => {
       if (sort === "likes") return b.likes - a.likes;
@@ -70,19 +87,25 @@ export default function ProfilePage() {
             </Avatar>
             <div className="flex-1">
               <h1 className="text-2xl font-black tracking-tight">{name}</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">アイディアハブメンバー</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                アイディアハブメンバー
+              </p>
               <div className="flex items-center gap-4 mt-3 flex-wrap">
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Lightbulb className="h-3.5 w-3.5 text-amber-500" /> {totalIdeas} ideas
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-500" />{" "}
+                  {totalIdeas} ideas
                 </span>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Heart className="h-3.5 w-3.5 text-rose-500" /> {totalLikes} likes
+                  <Heart className="h-3.5 w-3.5 text-rose-500" /> {totalLikes}{" "}
+                  likes
                 </span>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MessageCircle className="h-3.5 w-3.5" /> {totalComments} comments
+                  <MessageCircle className="h-3.5 w-3.5" /> {totalComments}{" "}
+                  comments
                 </span>
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Globe className="h-3.5 w-3.5 text-accent" /> {myPrototypes.length} apps
+                  <Globe className="h-3.5 w-3.5 text-accent" />{" "}
+                  {myPrototypes.length} apps
                 </span>
               </div>
             </div>
@@ -137,7 +160,9 @@ export default function ProfilePage() {
           {/* My Ideas */}
           <TabsContent value="ideas" className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-              <span className="text-sm text-muted-foreground">{filteredIdeas.length}件のアイディア</span>
+              <span className="text-sm text-muted-foreground">
+                {filteredIdeas.length}件のアイディア
+              </span>
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -148,9 +173,15 @@ export default function ProfilePage() {
                     className="h-8 pl-8 rounded-xl text-xs w-40"
                   />
                 </div>
-                <Select value={sort} onValueChange={(v) => setSort(v || "likes")}>
+                <Select
+                  value={sort}
+                  onValueChange={(v) => setSort(v || "likes")}
+                >
                   <SelectTrigger className="h-8 w-28 rounded-xl text-xs">
-                    <SelectValue>{SORT_LABELS[sort as keyof typeof SORT_LABELS] || "並び替え"}</SelectValue>
+                    <SelectValue>
+                      {SORT_LABELS[sort as keyof typeof SORT_LABELS] ||
+                        "並び替え"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="likes">共感順</SelectItem>
@@ -164,30 +195,44 @@ export default function ProfilePage() {
                   className="rounded-full gap-1 h-8 data-[state=on]:bg-muted"
                   aria-label="非公開のアイディアも表示"
                 >
-                  {showPrivate ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                  <span className="text-[11px]">{showPrivate ? "すべて" : "公開のみ"}</span>
+                  {showPrivate ? (
+                    <Eye className="h-3 w-3" />
+                  ) : (
+                    <EyeOff className="h-3 w-3" />
+                  )}
+                  <span className="text-[11px]">
+                    {showPrivate ? "すべて" : "公開のみ"}
+                  </span>
                 </Toggle>
               </div>
             </div>
-            {filteredIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
-            ))}
+            <div className="gap-3 flex flex-col">
+              {filteredIdeas.map((idea) => (
+                <IdeaCard key={idea.id} idea={idea} />
+              ))}
+            </div>
           </TabsContent>
 
           {/* Liked Ideas */}
           <TabsContent value="liked" className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{likedIdeas.length}件のいいね</span>
+              <span className="text-sm text-muted-foreground">
+                {likedIdeas.length}件のいいね
+              </span>
             </div>
-            {likedIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} showAuthor />
-            ))}
+            <div className="gap-3 flex flex-col">
+              {likedIdeas.map((idea) => (
+                <IdeaCard key={idea.id} idea={idea} showAuthor />
+              ))}
+            </div>
           </TabsContent>
 
           {/* My Apps */}
           <TabsContent value="apps" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{myPrototypes.length}件のプロトタイプ</span>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">
+                {myPrototypes.length}件のプロトタイプ
+              </span>
             </div>
             {myPrototypes.length > 0 ? (
               myPrototypes.map((proto) => (
@@ -197,13 +242,19 @@ export default function ProfilePage() {
                       <Globe className="h-5 w-5 text-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <Link href={`/ideas/${proto.ideaId}`} className="font-bold hover:text-amber-600 dark:hover:text-amber-400 transition-colors">
+                      <Link
+                        href={`/ideas/${proto.ideaId}`}
+                        className="font-bold hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+                      >
                         {proto.title}
                       </Link>
-                      <p className="text-sm text-muted-foreground mt-1">{proto.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {proto.description}
+                      </p>
                       <div className="flex items-center gap-3 mt-3">
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Heart className="h-3 w-3 text-rose-500" /> {proto.likes}
+                          <Heart className="h-3 w-3 text-rose-500" />{" "}
+                          {proto.likes}
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <MessageCircle className="h-3 w-3" /> コメント
@@ -211,12 +262,22 @@ export default function ProfilePage() {
                       </div>
                       <div className="flex gap-2 mt-3">
                         {proto.githubUrl && (
-                          <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors">
+                          <a
+                            href={proto.githubUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors"
+                          >
                             <GitFork className="h-3.5 w-3.5" /> GitHub
                           </a>
                         )}
                         {proto.demoUrl && (
-                          <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity">
+                          <a
+                            href={proto.demoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
+                          >
                             <ExternalLink className="h-3.5 w-3.5" /> Demo
                           </a>
                         )}
@@ -228,7 +289,9 @@ export default function ProfilePage() {
             ) : (
               <Card className="p-12 text-center grain-overlay">
                 <Globe className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">まだプロトタイプがありません</p>
+                <p className="text-muted-foreground">
+                  まだプロトタイプがありません
+                </p>
               </Card>
             )}
           </TabsContent>
@@ -236,27 +299,40 @@ export default function ProfilePage() {
           {/* My Comments */}
           <TabsContent value="comments" className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{myComments.length}件のコメント</span>
+              <span className="text-sm text-muted-foreground">
+                {myComments.length}件のコメント
+              </span>
             </div>
-            {myComments.map((comment, i) => (
-              <Link key={i} href={`/ideas/${comment.ideaId}`}>
-                <Card className="p-4 card-hover cursor-pointer grain-overlay">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <MessageCircle className="h-4 w-4 text-muted-foreground" />
+            <div className="gap-3 flex flex-col">
+              {myComments.map((comment, i) => (
+                <Link key={i} href={`/ideas/${comment.ideaId}`}>
+                  <Card className="p-4 card-hover cursor-pointer grain-overlay">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                        <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          「{comment.ideaTitle}」
+                          <span className="text-muted-foreground/60">
+                            {" "}
+                            by {comment.ideaAuthor}
+                          </span>{" "}
+                          にコメント
+                        </p>
+                        <p className="text-sm leading-relaxed line-clamp-2">
+                          &ldquo;{comment.content}&rdquo;
+                        </p>
+                        <span className="text-xs text-muted-foreground mt-1.5 block">
+                          {comment.time}
+                        </span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        「{comment.ideaTitle}」<span className="text-muted-foreground/60"> by {comment.ideaAuthor}</span> にコメント
-                      </p>
-                      <p className="text-sm leading-relaxed line-clamp-2">&ldquo;{comment.content}&rdquo;</p>
-                      <span className="text-xs text-muted-foreground mt-1.5 block">{comment.time}</span>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
-                  </div>
-                </Card>
-              </Link>
-            ))}
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </TabsContent>
 
           {/* My Feedback */}
@@ -264,25 +340,55 @@ export default function ProfilePage() {
             {notifications.map((notif, i) => (
               <Card key={i} className="p-4 grain-overlay">
                 <div className="flex items-start gap-3">
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                    notif.type === "like"
-                      ? "bg-rose-100 text-rose-500 dark:bg-rose-900/30 dark:text-rose-400"
-                      : notif.type === "comment"
-                      ? "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400"
-                      : "bg-green-100 text-green-500 dark:bg-green-900/30 dark:text-green-400"
-                  }`}>
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                      notif.type === "like"
+                        ? "bg-rose-100 text-rose-500 dark:bg-rose-900/30 dark:text-rose-400"
+                        : notif.type === "comment"
+                          ? "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400"
+                          : "bg-green-100 text-green-500 dark:bg-green-900/30 dark:text-green-400"
+                    }`}
+                  >
                     {notif.type === "like" && <Heart className="h-4 w-4" />}
-                    {notif.type === "comment" && <MessageCircle className="h-4 w-4" />}
-                    {notif.type === "prototype" && <Globe className="h-4 w-4" />}
+                    {notif.type === "comment" && (
+                      <MessageCircle className="h-4 w-4" />
+                    )}
+                    {notif.type === "prototype" && (
+                      <Globe className="h-4 w-4" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm leading-relaxed">
-                      {notif.type === "like" && <><span className="font-bold">{notif.count}件のいいね</span> がつきました</>}
-                      {notif.type === "comment" && <><span className="font-bold">{notif.count}件のコメント</span> がつきました</>}
-                      {notif.type === "prototype" && <>あなたのアイディアに <span className="font-bold">プロトタイプ</span> が投稿されました</>}
+                      {notif.type === "like" && (
+                        <>
+                          <span className="font-bold">
+                            {notif.count}件のいいね
+                          </span>{" "}
+                          がつきました
+                        </>
+                      )}
+                      {notif.type === "comment" && (
+                        <>
+                          <span className="font-bold">
+                            {notif.count}件のコメント
+                          </span>{" "}
+                          がつきました
+                        </>
+                      )}
+                      {notif.type === "prototype" && (
+                        <>
+                          あなたのアイディアに{" "}
+                          <span className="font-bold">プロトタイプ</span>{" "}
+                          が投稿されました
+                        </>
+                      )}
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1 truncate">「{notif.ideaTitle}」</p>
-                    <span className="text-xs text-muted-foreground mt-1 block">{notif.time}</span>
+                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                      「{notif.ideaTitle}」
+                    </p>
+                    <span className="text-xs text-muted-foreground mt-1 block">
+                      {notif.time}
+                    </span>
                   </div>
                 </div>
               </Card>
