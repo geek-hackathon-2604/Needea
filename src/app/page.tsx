@@ -172,7 +172,7 @@ function IdeaCard({
 }) {
   return (
     <Card
-      className={`overflow-hidden card-hover grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500`}
+      className={`overflow-hidden grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500`}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <div className="p-5 flex-1">
