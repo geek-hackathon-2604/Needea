@@ -33,13 +33,13 @@ export default function LandingPage() {
 
         <div className="mx-auto max-w-7xl px-4 pt-16 pb-20 sm:px-6 sm:pt-20 sm:pb-28 lg:pt-28 lg:pb-36">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h1 className="text-5xl font-black tracking-tight sm:text-6xl lg:text-7xl animate-in fade-in slide-in-from-bottom-4 duration-700 [word-break:auto-phrase]">
               アイディア、集まる。
               <br />
               <span className="gradient-text">未来、</span>始まる。
             </h1>
 
-            <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150">
+            <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 [word-break:auto-phrase]">
               日常で感じるみんなの『こうなったらいいな』が集まる場所。
               相互にひらめきを育んで、漠然とした想いを、確かな形にするプラットフォーム。
             </p>
