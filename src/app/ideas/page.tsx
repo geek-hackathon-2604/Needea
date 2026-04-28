@@ -22,10 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMemo } from "react";
 import { mockIdeas, MockIdea, mockPrototypes } from "@/lib/mock-data";
 import { SORT_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import {
   Heart,
   MessageCircle,
@@ -38,6 +40,8 @@ import {
   ArrowRight,
   Lock,
   Globe,
+  X,
+  Tag,
 } from "lucide-react";
 
 const FREE_VIEW_LIMIT = 20;
@@ -70,6 +74,8 @@ export default function IdeasFeedPage() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [localLikes, setLocalLikes] = useState<Record<string, number>>({});
   const [dbIdeas, setDbIdeas] = useState<Idea[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     supabase
@@ -78,9 +84,41 @@ export default function IdeasFeedPage() {
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .then(({ data }) => { if (data?.length) setDbIdeas(data as Idea[]); });
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id ?? null);
+      if (user) {
+        supabase.from("likes").select("idea_id").eq("user_id", user.id)
+          .then(({ data }) => {
+            if (data) setLikedIds(new Set(data.map((l) => l.idea_id)));
+          });
+      }
+    });
   }, []);
 
   const allIdeas: Idea[] = dbIdeas.length > 0 ? dbIdeas : (mockIdeas as unknown as Idea[]);
+
+  const allTags = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const idea of allIdeas) {
+      if (idea.visibility !== "public") continue;
+      for (const tag of idea.tags) {
+        counts[tag] = (counts[tag] ?? 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag, count]) => ({ tag, count }));
+  }, [allIdeas]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      return next;
+    });
+  };
 
   const sorted = [...allIdeas]
     .filter((idea) => idea.visibility === "public")
@@ -89,9 +127,12 @@ export default function IdeasFeedPage() {
       const q = searchQuery.toLowerCase();
       return (
         idea.title.toLowerCase().includes(q) ||
-        idea.content.toLowerCase().includes(q) ||
-        idea.tags.some((t) => t.toLowerCase().includes(q))
+        idea.content.toLowerCase().includes(q)
       );
+    })
+    .filter((idea) => {
+      if (selectedTags.size === 0) return true;
+      return [...selectedTags].every((t) => idea.tags.includes(t));
     })
     .sort((a, b) => {
       if (sort === "likes") return b.likes - a.likes;
@@ -114,20 +155,25 @@ export default function IdeasFeedPage() {
   const getPrototypeCount = (ideaId: string) =>
     mockPrototypes.filter((p) => p.ideaId === ideaId).length;
 
-  const handleToggleLike = (e: React.MouseEvent, idea: Idea) => {
+  const handleToggleLike = async (e: React.MouseEvent, idea: Idea) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!currentUserId) { toast.error("ログインが必要です"); return; }
+    const liked = likedIds.has(idea.id);
     setLikedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(idea.id)) {
-        next.delete(idea.id);
-        setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) - 1 }));
-      } else {
-        next.add(idea.id);
-        setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) + 1 }));
-      }
+      if (liked) next.delete(idea.id);
+      else next.add(idea.id);
       return next;
     });
+    setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) + (liked ? -1 : 1) }));
+    if (liked) {
+      await supabase.from("likes").delete().eq("idea_id", idea.id).eq("user_id", currentUserId);
+      await supabase.from("ideas").update({ likes: Math.max(0, (idea.likes ?? 0) - 1) }).eq("id", idea.id);
+    } else {
+      await supabase.from("likes").insert({ idea_id: idea.id, user_id: currentUserId });
+      await supabase.from("ideas").update({ likes: (idea.likes ?? 0) + 1 }).eq("id", idea.id);
+    }
   };
 
   return (
@@ -148,11 +194,11 @@ export default function IdeasFeedPage() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="キーワードやタグで検索..."
+              placeholder="キーワードで検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 rounded-xl"
@@ -187,9 +233,52 @@ export default function IdeasFeedPage() {
           </Select>
         </div>
 
+        {/* Tag filter — Pixiv style */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground font-medium">タグで絞り込む（複数選択可）</span>
+            {selectedTags.size > 0 && (
+              <button
+                onClick={() => setSelectedTags(new Set())}
+                className="cursor-pointer text-xs text-amber-600 dark:text-amber-400 hover:underline ml-auto"
+              >
+                クリア
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {allTags.map(({ tag, count }) => {
+              const active = selectedTags.has(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`cursor-pointer inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-all border ${
+                    active
+                      ? "bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-300 dark:shadow-amber-900"
+                      : "bg-transparent text-muted-foreground border-border hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-400"
+                  }`}
+                >
+                  {active && <X className="h-2.5 w-2.5" />}
+                  {tag}
+                  <span className={`${active ? "text-amber-100" : "text-muted-foreground/60"}`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
           <span>{sorted.length}件のアイディア</span>
-          <span>うち {visibleIdeas.length}件表示中</span>
+          {visibleIdeas.length < sorted.length && <span>うち {visibleIdeas.length}件表示中</span>}
+          {selectedTags.size > 0 && (
+            <span className="text-amber-600 dark:text-amber-400">
+              タグ: {[...selectedTags].join(" + ")}
+            </span>
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -213,7 +302,12 @@ export default function IdeasFeedPage() {
                         <Badge
                           key={tag}
                           variant="outline"
-                          className="text-xs rounded-full bg-transparent"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleTag(tag); }}
+                          className={`text-xs rounded-full cursor-pointer transition-colors ${
+                            selectedTags.has(tag)
+                              ? "bg-amber-500 text-white border-amber-500"
+                              : "bg-transparent hover:border-amber-400 hover:text-amber-600 dark:hover:text-amber-400"
+                          }`}
                         >
                           {tag}
                         </Badge>
