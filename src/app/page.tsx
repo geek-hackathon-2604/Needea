@@ -46,14 +46,21 @@ export default function LandingPage() {
 
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
               <Link href="/post">
-                <Button size="lg" className="rounded-full gap-2 text-base px-8 h-14 gradient-amber hover:opacity-90 shadow-xl shadow-amber-500/25 transition-all hover:scale-105">
+                <Button
+                  size="lg"
+                  className="rounded-full gap-2 text-base px-8 h-14 gradient-amber hover:opacity-90 shadow-xl shadow-amber-500/25 transition-all hover:scale-105"
+                >
                   <Lightbulb className="h-5 w-5" />
                   不満・アイディアを投稿する
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/ideas">
-                <Button variant="outline" size="lg" className="rounded-full text-base px-8 h-14">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="rounded-full text-base px-8 h-14"
+                >
                   みんなのアイディアを見る
                 </Button>
               </Link>
@@ -66,8 +73,12 @@ export default function LandingPage() {
                 { value: "42", label: "生まれたプロトタイプ" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-2xl font-black gradient-text">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+                  <div className="text-2xl font-black gradient-text">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>
@@ -93,14 +104,17 @@ export default function LandingPage() {
                 共感を集めている最新の不満・アイディアをチェック
               </p>
             </div>
-            <Link href="/ideas" className="hidden sm:flex items-center gap-1 text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline">
+            <Link
+              href="/ideas"
+              className="hidden sm:flex items-center gap-1 text-sm font-medium text-amber-600 dark:text-amber-400 hover:underline"
+            >
               すべて見る <ChevronRight className="h-4 w-4" />
             </Link>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {visibleIdeas.map((idea, i) => (
-              <IdeaCard key={idea.id} idea={idea} masked={!showAllTrending && i >= 2} index={i} />
+              <IdeaCard key={idea.id} idea={idea} masked={false} index={i} />
             ))}
           </div>
 
@@ -124,14 +138,19 @@ export default function LandingPage() {
       <section className="py-24 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tight">
-            あなたの<span className="gradient-text">アイディアの種</span>を<br />シェアしよう
+            あなたの<span className="gradient-text">アイディアの種</span>を
+            <br />
+            シェアしよう
           </h2>
           <p className="mt-4 text-muted-foreground text-lg">
             AIがあなたのアイディアの言語化をサポートします。まずは気軽に話しかけてみてください。
           </p>
           <div className="mt-8">
             <Link href="/post">
-              <Button size="lg" className="rounded-full gap-2 text-base px-10 h-14 gradient-amber hover:opacity-90 shadow-xl shadow-amber-500/25 transition-all hover:scale-105">
+              <Button
+                size="lg"
+                className="rounded-full gap-2 text-base px-10 h-14 gradient-amber hover:opacity-90 shadow-xl shadow-amber-500/25 transition-all hover:scale-105"
+              >
                 <Sparkles className="h-5 w-5" />
                 無料で始める
               </Button>
@@ -143,15 +162,33 @@ export default function LandingPage() {
   );
 }
 
-function IdeaCard({ idea, masked, index }: { idea: MockIdea; masked: boolean; index: number }) {
+function IdeaCard({
+  idea,
+  index,
+}: {
+  idea: MockIdea;
+  masked: boolean;
+  index: number;
+}) {
   return (
-    <Card className={`overflow-hidden card-hover grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500 ${masked ? "mask-blur" : ""}`} style={{ animationDelay: `${index * 100}ms` }}>
-      <div className="p-5">
-        <h3 className="font-bold text-lg leading-snug line-clamp-2 mb-3">{idea.title}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{idea.content}</p>
+    <Card
+      className={`overflow-hidden card-hover grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500 `}
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="p-5 flex-1">
+        <h3 className="font-bold text-lg leading-snug line-clamp-2 mb-3">
+          {idea.title}
+        </h3>
+        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+          {idea.content}
+        </p>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {idea.tags.map((tag) => (
-            <Badge key={tag} variant="outline" className="text-xs rounded-full bg-transparent">
+            <Badge
+              key={tag}
+              variant="outline"
+              className="text-xs rounded-full bg-transparent"
+            >
               {tag}
             </Badge>
           ))}
@@ -160,9 +197,13 @@ function IdeaCard({ idea, masked, index }: { idea: MockIdea; masked: boolean; in
       <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/30">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">{idea.author.avatar}</AvatarFallback>
+            <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
+              {idea.author.avatar}
+            </AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground">{idea.author.name}</span>
+          <span className="text-xs text-muted-foreground">
+            {idea.author.name}
+          </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
