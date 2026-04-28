@@ -213,14 +213,28 @@ export default function IdeasFeedPage() {
                         />
                         {getLikes(idea)}
                       </button>
-                      <span className="flex items-center gap-1 text-muted-foreground">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push(`/ideas/${idea.id}#comments`);
+                        }}
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
                         <MessageCircle className="h-3.5 w-3.5" />
                         {idea.comments}
-                      </span>
-                      <span className="flex items-center gap-1">
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          router.push(`/ideas/${idea.id}#prototypes`);
+                        }}
+                        className="flex items-center gap-1 hover:text-accent transition-colors"
+                      >
                         <Globe className="h-3.5 w-3.5 text-accent" />
                         {protoCount}
-                      </span>
+                      </button>
                     </div>
                   </div>
                 </Card>

@@ -190,7 +190,7 @@ export default function IdeaDetailPage() {
             </Card>
 
             {/* Comments */}
-            <div>
+            <div id="comments">
               <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
                 コメント ({comments.length})
@@ -240,7 +240,7 @@ export default function IdeaDetailPage() {
             </div>
 
             {/* Prototypes */}
-            <div>
+            <div id="prototypes">
               <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
                 <Globe className="h-5 w-5 text-accent" />
                 作ってみた ({prototypes.length})
