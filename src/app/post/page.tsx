@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Toggle } from "@/components/ui/toggle";
-import { mockIdeas } from "@/lib/mock-data";
 import { getAllTags, getTagUsageCount } from "@/lib/tags";
 import {
   Sparkles,
@@ -20,7 +19,6 @@ import {
   Plus,
   Eye,
   EyeOff,
-  MessageCircle,
   RefreshCw,
 } from "lucide-react";
 
@@ -38,12 +36,15 @@ export default function PostPage() {
   const [inputText, setInputText] = useState("");
 
   // chat
-  const [chatMessages, setChatMessages] = useState<{ role: "user" | "ai"; content: string }[]>([]);
+  const [chatMessages, setChatMessages] = useState<
+    { role: "user" | "ai"; content: string }[]
+  >([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
   const [chatComplete, setChatComplete] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatCardRef = useRef<HTMLDivElement>(null);
 
   // tags
   const [tags, setTags] = useState<string[]>([...initialTags]);
@@ -61,6 +62,15 @@ export default function PostPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, isTyping]);
+
+  useEffect(() => {
+    if (chatStarted) {
+      chatCardRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [chatStarted]);
 
   const handleStartChat = () => {
     if (!inputText.trim()) return;
@@ -83,14 +93,18 @@ export default function PostPage() {
     setIsTyping(true);
     setTimeout(() => {
       if (nextQ < aiQuestions.length) {
-        setChatMessages((prev) => [...prev, { role: "ai", content: aiQuestions[nextQ] }]);
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "ai", content: aiQuestions[nextQ] },
+        ]);
         setCurrentQuestion(nextQ);
       } else {
         setChatMessages((prev) => [
           ...prev,
           {
             role: "ai",
-            content: "素敵なアイディアですね！質問は以上です。会話をもとに、アイディアの種として投稿しましょう。",
+            content:
+              "素敵なアイディアですね！質問は以上です。会話をもとに、アイディアの種として投稿しましょう。",
           },
         ]);
         setChatComplete(true);
@@ -122,7 +136,10 @@ export default function PostPage() {
     setTagInput(value);
     if (value.trim()) {
       const suggestions = allTags
-        .filter((t) => t.toLowerCase().includes(value.toLowerCase()) && !tags.includes(t))
+        .filter(
+          (t) =>
+            t.toLowerCase().includes(value.toLowerCase()) && !tags.includes(t),
+        )
         .slice(0, 5);
       setTagSuggestions(suggestions);
     } else {
@@ -130,7 +147,8 @@ export default function PostPage() {
     }
   };
 
-  const canPost = inputText.trim() && tags.length >= 3 && (isPublic ? chatComplete : true);
+  const canPost =
+    inputText.trim() && tags.length >= 3 && (isPublic ? chatComplete : true);
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6">
@@ -156,7 +174,9 @@ export default function PostPage() {
               <Lightbulb className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-lg">あなたの不満・アイディアを聞かせてください</h2>
+              <h2 className="font-bold text-lg">
+                あなたの不満・アイディアを聞かせてください
+              </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 箇条書きや一言のぼやきでも大丈夫。AIが掘り下げながら、アイディアの種に育てます。
               </p>
@@ -171,13 +191,26 @@ export default function PostPage() {
 
           {!chatStarted && (
             <div className="flex items-center justify-between mt-4 gap-3 flex-wrap">
-              <span className="text-xs text-muted-foreground">文字数: {inputText.length}</span>
+              <span className="text-xs text-muted-foreground">
+                文字数: {inputText.length}
+              </span>
               <div className="flex items-center gap-2">
-                <Button variant="outline" disabled={!inputText.trim()} className="rounded-full gap-2" onClick={() => { setIsPublic(false); }}>
+                <Button
+                  variant="outline"
+                  disabled={!inputText.trim()}
+                  className="rounded-full gap-2"
+                  onClick={() => {
+                    setIsPublic(false);
+                  }}
+                >
                   <EyeOff className="h-4 w-4" />
                   非公開で保存
                 </Button>
-                <Button onClick={handleStartChat} disabled={!inputText.trim()} className="rounded-full gap-2 gradient-amber">
+                <Button
+                  onClick={handleStartChat}
+                  disabled={!inputText.trim()}
+                  className="rounded-full gap-2 gradient-amber"
+                >
                   <Sparkles className="h-4 w-4" />
                   AIヒアリングを始める
                 </Button>
@@ -188,185 +221,212 @@ export default function PostPage() {
 
         {/* AI Chat (appears below when started) */}
         {chatStarted && (
-          <Card className="p-0 overflow-hidden grain-overlay mb-6">
-            <div className="p-4 border-b bg-muted/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-amber">
-                    <Sparkles className="h-4 w-4 text-white" />
+          <>
+            <Card ref={chatCardRef} className="p-0 overflow-hidden grain-overlay mb-6 scroll-mt-20">
+              <div className="p-4 border-b bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-amber">
+                      <Sparkles className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold">AI Idea Coach</p>
+                      <p className="text-xs text-muted-foreground">
+                        {chatComplete
+                          ? "ヒアリング完了"
+                          : "あなたのアイディアを掘り下げています"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold">AI Idea Coach</p>
-                    <p className="text-xs text-muted-foreground">
-                      {chatComplete ? "ヒアリング完了" : "あなたのアイディアを掘り下げています"}
-                    </p>
-                  </div>
+                  {!chatComplete && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleResetChat}
+                      className="rounded-full text-xs text-muted-foreground"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      リセット
+                    </Button>
+                  )}
                 </div>
-                {!chatComplete && (
-                  <Button variant="ghost" size="sm" onClick={handleResetChat} className="rounded-full text-xs text-muted-foreground">
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    リセット
-                  </Button>
-                )}
               </div>
-            </div>
-            <ScrollArea className="h-[350px] sm:h-[450px]">
-              <div className="p-4 sm:p-6 space-y-4">
-                {chatMessages.map((msg, i) => (
-                  <ChatBubble key={i} message={msg} />
-                ))}
-                {isTyping && <TypingIndicator />}
-                <div ref={chatEndRef} />
-              </div>
-            </ScrollArea>
-            {!chatComplete && (
-              <ChatInput onSend={handleReply} />
-            )}
-          </Card>
+              <ScrollArea className="h-[350px] sm:h-[450px]">
+                <div className="p-4 sm:p-6 space-y-4">
+                  {chatMessages.map((msg, i) => (
+                    <ChatBubble key={i} message={msg} />
+                  ))}
+                  {isTyping && <TypingIndicator />}
+                  <div ref={chatEndRef} />
+                </div>
+              </ScrollArea>
+              {!chatComplete && <ChatInput onSend={handleReply} />}
+            </Card>
+          </>
         )}
 
         {/* Tags, Need, Visibility (shown after chat starts) */}
-        {chatStarted && (<>
-        <Card className="p-5 sm:p-6 grain-overlay mb-6">
-          <h3 className="font-bold text-sm mb-1">タグ</h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            最低3つ必要です。AIが自動で候補を提案します。編集もできます。
-          </p>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {tags.map((tag) => (
-              <Badge key={tag} className="rounded-full pl-3 pr-1.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 gap-1">
-                {tag}
-                <button
-                  onClick={() => handleRemoveTag(tag)}
-                  disabled={tags.length <= 3}
-                  className="ml-0.5 rounded-full p-0.5 hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  aria-label={`${tag}を削除`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-          <div className="relative">
-            <div className="flex gap-2">
-              <Input
-                placeholder="タグを追加..."
-                value={tagInput}
-                onChange={(e) => handleTagInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTag(tagInput);
-                  }
-                }}
-                className="rounded-xl text-sm h-9"
-              />
-              <Button size="sm" variant="outline" onClick={() => handleAddTag(tagInput)} disabled={!tagInput.trim()} className="rounded-xl shrink-0">
-                <Plus className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-            {tagSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-xl shadow-lg z-10 p-1">
-                {tagSuggestions.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => handleAddTag(s)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors"
+        {chatStarted && (
+          <>
+            <Card className="p-5 sm:p-6 grain-overlay mb-6">
+              <h3 className="font-bold text-sm mb-1">タグ</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                最低3つ必要です。AIが自動で候補を提案します。編集もできます。
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    className="rounded-full pl-3 pr-1.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 gap-1"
                   >
-                    <span>{s}</span>
-                    <span className="text-xs text-muted-foreground">{getTagUsageCount(s)}件</span>
-                  </button>
+                    {tag}
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      disabled={tags.length <= 3}
+                      className="ml-0.5 rounded-full p-0.5 hover:bg-amber-200 dark:hover:bg-amber-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      aria-label={`${tag}を削除`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
                 ))}
               </div>
-            )}
-          </div>
-        </Card>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="タグを追加..."
+                    value={tagInput}
+                    onChange={(e) => handleTagInputChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTag(tagInput);
+                      }
+                    }}
+                    className="rounded-xl text-sm h-9"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddTag(tagInput)}
+                    disabled={!tagInput.trim()}
+                    className="rounded-xl shrink-0"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {tagSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-xl shadow-lg z-10 p-1">
+                    {tagSuggestions.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => handleAddTag(s)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors"
+                      >
+                        <span>{s}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {getTagUsageCount(s)}件
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
 
-        {/* Need Level */}
-        <Card className="p-5 sm:p-6 grain-overlay mb-6">
-          <h3 className="font-bold text-sm mb-1">Need 度（重要度）</h3>
-          <p className="text-xs text-muted-foreground mb-3">
-            このアイディアのあなたにとっての重要度・困り度を5段階で教えてください。
-          </p>
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((level) => (
-              <button
-                key={level}
-                onClick={() => setNeedLevel(level)}
-                className="p-1 transition-all hover:scale-110"
-                aria-label={`Need度 ${level}`}
-              >
-                <Star
-                  className={`h-8 w-8 ${
-                    level <= needLevel
-                      ? "fill-amber-400 text-amber-400"
-                      : "text-muted-foreground/30"
-                  } transition-colors`}
-                />
-              </button>
-            ))}
-            {needLevel > 0 && (
-              <span className="ml-3 text-sm text-muted-foreground">
-                {needLevel === 1 && "ちょっと気になる"}
-                {needLevel === 2 && "少し困っている"}
-                {needLevel === 3 && "まあまあ重要"}
-                {needLevel === 4 && "かなり重要"}
-                {needLevel === 5 && "めっちゃ欲しい！"}
-              </span>
-            )}
-          </div>
-        </Card>
+            {/* Need Level */}
+            <Card className="p-5 sm:p-6 grain-overlay mb-6">
+              <h3 className="font-bold text-sm mb-1">Need 度（重要度）</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                このアイディアのあなたにとっての重要度・困り度を5段階で教えてください。
+              </p>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setNeedLevel(level)}
+                    className="p-1 transition-all hover:scale-110"
+                    aria-label={`Need度 ${level}`}
+                  >
+                    <Star
+                      className={`h-8 w-8 ${
+                        level <= needLevel
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-muted-foreground/30"
+                      } transition-colors`}
+                    />
+                  </button>
+                ))}
+                {needLevel > 0 && (
+                  <span className="ml-3 text-sm text-muted-foreground">
+                    {needLevel === 1 && "ちょっと気になる"}
+                    {needLevel === 2 && "少し困っている"}
+                    {needLevel === 3 && "まあまあ重要"}
+                    {needLevel === 4 && "かなり重要"}
+                    {needLevel === 5 && "めっちゃ欲しい！"}
+                  </span>
+                )}
+              </div>
+            </Card>
 
-        {/* Visibility + Post Actions */}
-        <Card className="p-5 sm:p-6 grain-overlay mb-6">
-          <h3 className="font-bold text-sm mb-1">公開設定</h3>
-          <p className="text-xs text-muted-foreground mb-4">
-            公開アイディアはAIヒアリングが必須です。非公開の場合はヒアリングなしでも保存できます。
-          </p>
-          <div className="flex items-center gap-3 mb-4">
-            <Toggle
-              pressed={isPublic}
-              onPressedChange={(v) => {
-                // public requires chat complete, private doesn't
-                setIsPublic(v);
-              }}
-              className="rounded-full gap-1.5 data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700"
-            >
-              <Eye className="h-3.5 w-3.5" />
-              <span className="text-xs font-medium">公開</span>
-            </Toggle>
-            <Toggle
-              pressed={!isPublic}
-              onPressedChange={(v) => {
-                setIsPublic(!v);
-              }}
-              className="rounded-full gap-1.5 data-[state=on]:bg-muted data-[state=on]:text-muted-foreground"
-            >
-              <EyeOff className="h-3.5 w-3.5" />
-              <span className="text-xs font-medium">非公開</span>
-            </Toggle>
-          </div>
+            {/* Visibility + Post Actions */}
+            <Card className="p-5 sm:p-6 grain-overlay mb-6">
+              <h3 className="font-bold text-sm mb-1">公開設定</h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                公開アイディアはAIヒアリングが必須です。非公開の場合はヒアリングなしでも保存できます。
+              </p>
+              <div className="flex items-center gap-3 mb-4">
+                <Toggle
+                  pressed={isPublic}
+                  onPressedChange={(v) => {
+                    // public requires chat complete, private doesn't
+                    setIsPublic(v);
+                  }}
+                  className="rounded-full gap-1.5 data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">公開</span>
+                </Toggle>
+                <Toggle
+                  pressed={!isPublic}
+                  onPressedChange={(v) => {
+                    setIsPublic(!v);
+                  }}
+                  className="rounded-full gap-1.5 data-[state=on]:bg-muted data-[state=on]:text-muted-foreground"
+                >
+                  <EyeOff className="h-3.5 w-3.5" />
+                  <span className="text-xs font-medium">非公開</span>
+                </Toggle>
+              </div>
 
-          {!isPublic && (
-            <p className="text-xs text-muted-foreground mb-4 p-3 bg-muted/50 rounded-xl">
-              ヒアリング内容は保存されます。非公開なので他のユーザーには表示されません。
-            </p>
-          )}
+              {!isPublic && (
+                <p className="text-xs text-muted-foreground mb-4 p-3 bg-muted/50 rounded-xl">
+                  ヒアリング内容は保存されます。非公開なので他のユーザーには表示されません。
+                </p>
+              )}
 
-          <div className="flex flex-wrap gap-3">
-            <Button disabled={!canPost} className="rounded-full gap-2 gradient-amber shadow-lg shadow-amber-500/25">
-              <Send className="h-4 w-4" />
-              {isPublic ? "アイディアの種を投稿する" : "非公開で保存する"}
-            </Button>
-          </div>
-        </Card>
-        </>)}
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  disabled={!canPost}
+                  className="rounded-full gap-2 gradient-amber shadow-lg shadow-amber-500/25"
+                >
+                  <Send className="h-4 w-4" />
+                  {isPublic ? "アイディアの種を投稿する" : "非公開で保存する"}
+                </Button>
+              </div>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-function ChatBubble({ message }: { message: { role: "user" | "ai"; content: string } }) {
+function ChatBubble({
+  message,
+}: {
+  message: { role: "user" | "ai"; content: string };
+}) {
   const isAI = message.role === "ai";
   return (
     <div className={`flex gap-3 ${isAI ? "justify-start" : "justify-end"}`}>
@@ -379,7 +439,9 @@ function ChatBubble({ message }: { message: { role: "user" | "ai"; content: stri
       )}
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
-          isAI ? "bg-muted rounded-tl-sm" : "gradient-amber text-white rounded-tr-sm"
+          isAI
+            ? "bg-muted rounded-tl-sm"
+            : "gradient-amber text-white rounded-tr-sm"
         }`}
       >
         {message.content}
@@ -437,7 +499,12 @@ function ChatInput({ onSend }: { onSend: (msg: string) => void }) {
           className="min-h-0 h-10 resize-none rounded-xl text-sm"
           rows={1}
         />
-        <Button size="icon" onClick={handleSubmit} disabled={!value.trim()} className="shrink-0 rounded-xl gradient-amber">
+        <Button
+          size="icon"
+          onClick={handleSubmit}
+          disabled={!value.trim()}
+          className="shrink-0 rounded-xl gradient-amber"
+        >
           <Send className="h-4 w-4" />
         </Button>
       </div>
