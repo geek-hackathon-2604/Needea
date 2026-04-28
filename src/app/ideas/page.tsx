@@ -62,7 +62,10 @@ export default function IdeasFeedPage() {
     })
     .sort((a, b) => {
       if (sort === "likes") return b.likes - a.likes;
-      if (sort === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sort === "newest")
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       if (sort === "unresolved") {
         if (a.status === "open" && b.status !== "open") return -1;
         if (a.status !== "open" && b.status === "open") return 1;
@@ -122,19 +125,30 @@ export default function IdeasFeedPage() {
               className="pl-10 rounded-xl"
             />
           </div>
-          <Select value={sort} onValueChange={(v) => setSort((v as keyof typeof SORT_LABELS) || "likes")}>
+          <Select
+            value={sort}
+            onValueChange={(v) =>
+              setSort((v as keyof typeof SORT_LABELS) || "likes")
+            }
+          >
             <SelectTrigger className="w-full sm:w-44 rounded-xl">
               <SelectValue>{SORT_LABELS[sort] || "並び替え"}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="likes">
-                <span className="flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5" /> 共感順</span>
+                <span className="flex items-center gap-2">
+                  <TrendingUp className="h-3.5 w-3.5" /> 共感順
+                </span>
               </SelectItem>
               <SelectItem value="newest">
-                <span className="flex items-center gap-2"><Clock className="h-3.5 w-3.5" /> 新着順</span>
+                <span className="flex items-center gap-2">
+                  <Clock className="h-3.5 w-3.5" /> 新着順
+                </span>
               </SelectItem>
               <SelectItem value="unresolved">
-                <span className="flex items-center gap-2"><AlertCircle className="h-3.5 w-3.5" /> 未解決</span>
+                <span className="flex items-center gap-2">
+                  <AlertCircle className="h-3.5 w-3.5" /> 未解決
+                </span>
               </SelectItem>
             </SelectContent>
           </Select>
@@ -153,13 +167,19 @@ export default function IdeasFeedPage() {
               <Link key={idea.id} href={`/ideas/${idea.id}`}>
                 <Card className="overflow-hidden card-hover grain-overlay cursor-pointer h-full flex flex-col">
                   <div className="p-5 flex-1">
-                    <h3 className="font-bold leading-snug line-clamp-2 mb-3">{idea.title}</h3>
+                    <h3 className="font-bold leading-snug line-clamp-2 mb-3">
+                      {idea.title}
+                    </h3>
                     <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                       {idea.content}
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       {idea.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs rounded-full bg-transparent">
+                        <Badge
+                          key={tag}
+                          variant="outline"
+                          className="text-xs rounded-full bg-transparent"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -168,28 +188,38 @@ export default function IdeasFeedPage() {
                   <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/30">
                     <span
                       className="flex items-center gap-2 hover:underline cursor-pointer"
-                      onClick={(e) => { e.stopPropagation(); e.preventDefault(); router.push(`/users/${idea.author.name}`); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        router.push(`/users/${idea.author.name}`);
+                      }}
                     >
                       <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
                           {idea.author.avatar}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs text-muted-foreground">{idea.author.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {idea.author.name}
+                      </span>
                     </span>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <button
                         onClick={(e) => handleToggleLike(e, idea)}
                         className="flex items-center gap-1 hover:text-rose-500 transition-colors"
                       >
-                        <Heart className={`h-3.5 w-3.5 ${liked ? "fill-rose-500 text-rose-500" : ""}`} />
+                        <Heart
+                          className={`h-3.5 w-3.5 text-rose-500 ${liked ? "fill-rose-500 " : ""}`}
+                        />
                         {getLikes(idea)}
                       </button>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="h-3.5 w-3.5" /> {idea.comments}
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        {idea.comments}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Globe className="h-3.5 w-3.5" /> {protoCount}
+                        <Globe className="h-3.5 w-3.5 text-accent" />
+                        {protoCount}
                       </span>
                     </div>
                   </div>
@@ -202,7 +232,9 @@ export default function IdeasFeedPage() {
         {visibleIdeas.length === 0 && (
           <div className="text-center py-20">
             <Search className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">条件に一致するアイディアが見つかりませんでした</p>
+            <p className="text-muted-foreground">
+              条件に一致するアイディアが見つかりませんでした
+            </p>
           </div>
         )}
 
@@ -211,7 +243,11 @@ export default function IdeasFeedPage() {
             <p className="text-sm text-muted-foreground mb-4">
               さらにアイディアを見るには、1週間に1回アイディアを投稿してください
             </p>
-            <Button variant="outline" className="rounded-full gap-2" onClick={() => setShowGate(true)}>
+            <Button
+              variant="outline"
+              className="rounded-full gap-2"
+              onClick={() => setShowGate(true)}
+            >
               <Lock className="h-4 w-4" />
               もっと見る（あと {sorted.length - FREE_VIEW_LIMIT} 件）
             </Button>
@@ -227,7 +263,9 @@ export default function IdeasFeedPage() {
             </div>
           </div>
           <DialogHeader>
-            <DialogTitle className="text-xl font-black">Give & Take の精神で</DialogTitle>
+            <DialogTitle className="text-xl font-black">
+              Give & Take の精神で
+            </DialogTitle>
             <DialogDescription className="text-muted-foreground text-sm leading-relaxed pt-2">
               アイディアをもっと見るには、1週間に1回、あなたのアイディアの種を1つ投稿してください。
               <br />
@@ -243,7 +281,11 @@ export default function IdeasFeedPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <Button variant="ghost" onClick={() => setShowGate(false)} className="text-muted-foreground text-sm">
+            <Button
+              variant="ghost"
+              onClick={() => setShowGate(false)}
+              className="text-muted-foreground text-sm"
+            >
               今はスキップ
             </Button>
           </div>
