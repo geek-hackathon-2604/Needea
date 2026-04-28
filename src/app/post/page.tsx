@@ -151,18 +151,18 @@ export default function PostPage() {
     inputText.trim() && tags.length >= 3 && (isPublic ? chatComplete : true);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6">
-      <div className="mx-auto max-w-3xl">
+    <div className="min-h-full px-4 sm:px-6">
+      <div className="mx-auto max-w-3xl mt-16 mb-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground mb-4">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground mb-6">
             <Sparkles className="h-3.5 w-3.5 text-amber-500" />
             AIがあなたのアイディアの種を掘り下げます
           </div>
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
             アイディアを投稿する
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-4 text-muted-foreground">
             漠然とした不満や「こうだったらいいな」を気軽にシェアしてください
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function PostPage() {
             placeholder="例：冷蔵庫の中身を把握できなくて、いつも食材をダメにしてしまう。買い物中に冷蔵庫の中身が見られたらいいのに..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            className="min-h-28 text-base leading-relaxed resize-none rounded-xl"
+            className="min-h-40 text-base leading-relaxed resize-none rounded-xl"
           />
 
           {!chatStarted && (
