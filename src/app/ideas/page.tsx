@@ -26,6 +26,7 @@ import { mockIdeas, MockIdea, mockPrototypes } from "@/lib/mock-data";
 import { SORT_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import {
   Heart,
   MessageCircle,
@@ -70,6 +71,7 @@ export default function IdeasFeedPage() {
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [localLikes, setLocalLikes] = useState<Record<string, number>>({});
   const [dbIdeas, setDbIdeas] = useState<Idea[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase
@@ -78,6 +80,16 @@ export default function IdeasFeedPage() {
       .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .then(({ data }) => { if (data?.length) setDbIdeas(data as Idea[]); });
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id ?? null);
+      if (user) {
+        supabase.from("likes").select("idea_id").eq("user_id", user.id)
+          .then(({ data }) => {
+            if (data) setLikedIds(new Set(data.map((l) => l.idea_id)));
+          });
+      }
+    });
   }, []);
 
   const allIdeas: Idea[] = dbIdeas.length > 0 ? dbIdeas : (mockIdeas as unknown as Idea[]);
@@ -114,20 +126,25 @@ export default function IdeasFeedPage() {
   const getPrototypeCount = (ideaId: string) =>
     mockPrototypes.filter((p) => p.ideaId === ideaId).length;
 
-  const handleToggleLike = (e: React.MouseEvent, idea: Idea) => {
+  const handleToggleLike = async (e: React.MouseEvent, idea: Idea) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!currentUserId) { toast.error("ログインが必要です"); return; }
+    const liked = likedIds.has(idea.id);
     setLikedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(idea.id)) {
-        next.delete(idea.id);
-        setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) - 1 }));
-      } else {
-        next.add(idea.id);
-        setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) + 1 }));
-      }
+      if (liked) next.delete(idea.id);
+      else next.add(idea.id);
       return next;
     });
+    setLocalLikes((l) => ({ ...l, [idea.id]: getLikes(idea) + (liked ? -1 : 1) }));
+    if (liked) {
+      await supabase.from("likes").delete().eq("idea_id", idea.id).eq("user_id", currentUserId);
+      await supabase.from("ideas").update({ likes: Math.max(0, (idea.likes ?? 0) - 1) }).eq("id", idea.id);
+    } else {
+      await supabase.from("likes").insert({ idea_id: idea.id, user_id: currentUserId });
+      await supabase.from("ideas").update({ likes: (idea.likes ?? 0) + 1 }).eq("id", idea.id);
+    }
   };
 
   return (

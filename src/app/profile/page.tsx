@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,15 +16,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockUserProfile, mockIdeas, mockPrototypes } from "@/lib/mock-data";
+import { MockIdea } from "@/lib/mock-data";
 import { SORT_LABELS } from "@/lib/constants";
 import { IdeaCard } from "@/components/shared/idea-card";
+import { createClient } from "@/lib/supabase/client";
 import {
   Lightbulb,
   PlusCircle,
   Heart,
   MessageCircle,
-  Bell,
   Globe,
   Search,
   ChevronRight,
@@ -34,35 +34,141 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-const mockLikedIdeaIds = ["3", "5", "6", "10", "12"];
+type DbIdea = {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  likes: number;
+  comments: number;
+  status: "open" | "in_progress" | "resolved";
+  visibility: "public" | "private";
+  need_level: number;
+  chat_history: { question: string; answer: string }[] | null;
+  created_at: string;
+  user_id: string;
+};
+
+type DbComment = {
+  id: string;
+  idea_id: string;
+  content: string;
+  created_at: string;
+  ideas: { id: string; title: string; profiles: { name: string } | null } | null;
+};
+
+type LikedIdea = {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  likes: number;
+  comments: number;
+  status: "open" | "in_progress" | "resolved";
+  visibility: "public" | "private";
+  need_level: number;
+  chat_history: { question: string; answer: string }[] | null;
+  created_at: string;
+  profiles: { name: string; avatar_url: string | null } | null;
+};
+
+function toMockIdea(idea: DbIdea, authorName: string, authorAvatar: string): MockIdea {
+  return {
+    id: idea.id,
+    title: idea.title,
+    content: idea.content,
+    chatHistory: idea.chat_history ?? [],
+    tags: idea.tags ?? [],
+    likes: idea.likes ?? 0,
+    comments: idea.comments ?? 0,
+    author: { name: authorName, avatar: authorAvatar },
+    createdAt: idea.created_at,
+    status: idea.status,
+    visibility: idea.visibility,
+    needLevel: idea.need_level ?? 3,
+  };
+}
+
+function likedToMockIdea(idea: LikedIdea): MockIdea {
+  const authorName = idea.profiles?.name ?? "Unknown";
+  return {
+    id: idea.id,
+    title: idea.title,
+    content: idea.content,
+    chatHistory: idea.chat_history ?? [],
+    tags: idea.tags ?? [],
+    likes: idea.likes ?? 0,
+    comments: idea.comments ?? 0,
+    author: { name: authorName, avatar: authorName.charAt(0).toUpperCase() },
+    createdAt: idea.created_at,
+    status: idea.status,
+    visibility: idea.visibility,
+    needLevel: idea.need_level ?? 3,
+  };
+}
 
 export default function ProfilePage() {
-  const {
-    name,
-    avatar,
-    totalIdeas,
-    totalLikes,
-    totalComments,
-    totalContributions,
-    ideas,
-    notifications,
-    myComments,
-  } = mockUserProfile;
+  const supabase = createClient();
+  const [profile, setProfile] = useState<{ name: string; avatar_url: string | null } | null>(null);
+  const [ideas, setIdeas] = useState<DbIdea[]>([]);
+  const [likedIdeas, setLikedIdeas] = useState<LikedIdea[]>([]);
+  const [myComments, setMyComments] = useState<DbComment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showPrivate, setShowPrivate] = useState(false);
   const [sort, setSort] = useState("likes");
   const [tagFilter, setTagFilter] = useState("");
 
-  const likedIdeas = mockIdeas.filter(
-    (i) => mockLikedIdeaIds.includes(i.id) && i.visibility === "public",
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoading(false); return; }
+
+      const [profileRes, ideasRes, commentsRes, likedRes] = await Promise.all([
+        supabase.from("profiles").select("name, avatar_url").eq("id", user.id).single(),
+        supabase.from("ideas").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("comments")
+          .select("*, ideas(id, title, profiles(name))")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase.from("likes")
+          .select("ideas(id, title, content, tags, likes, comments, status, visibility, need_level, chat_history, created_at, profiles(name, avatar_url))")
+          .eq("user_id", user.id),
+      ]);
+
+      if (profileRes.data) setProfile(profileRes.data);
+      if (ideasRes.data) setIdeas(ideasRes.data as DbIdea[]);
+      if (commentsRes.data) setMyComments(commentsRes.data as DbComment[]);
+      if (likedRes.data) {
+        const liked = likedRes.data
+          .map((l: any) => l.ideas)
+          .filter(Boolean) as LikedIdea[];
+        setLikedIdeas(liked);
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  const name = profile?.name ?? "ユーザー";
+  const avatar = (profile?.name ?? "U").charAt(0).toUpperCase();
+  const totalIdeas = ideas.length;
+  const totalLikes = ideas.reduce((sum, i) => sum + (i.likes ?? 0), 0);
+  const totalComments = ideas.reduce((sum, i) => sum + (i.comments ?? 0), 0);
+
+  const mockIdeasForCard = useMemo(
+    () => ideas.map((i) => toMockIdea(i, name, avatar)),
+    [ideas, name, avatar],
   );
-  const myPrototypes = mockPrototypes.filter(
-    (p) => p.author.name === "ユーザー",
+
+  const likedIdeasForCard = useMemo(
+    () => likedIdeas.map(likedToMockIdea),
+    [likedIdeas],
   );
 
   const topTags = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const idea of ideas) {
-      for (const tag of idea.tags) {
+      for (const tag of idea.tags ?? []) {
         counts[tag] = (counts[tag] ?? 0) + 1;
       }
     }
@@ -74,8 +180,8 @@ export default function ProfilePage() {
 
   const filteredIdeas = useMemo(() => {
     let filtered = showPrivate
-      ? [...ideas]
-      : ideas.filter((i) => i.visibility === "public");
+      ? [...mockIdeasForCard]
+      : mockIdeasForCard.filter((i) => i.visibility === "public");
     if (tagFilter) {
       filtered = filtered.filter((i) =>
         i.tags.some((t) => t.toLowerCase().includes(tagFilter.toLowerCase())),
@@ -85,7 +191,28 @@ export default function ProfilePage() {
       if (sort === "likes") return b.likes - a.likes;
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [ideas, showPrivate, tagFilter, sort]);
+  }, [mockIdeasForCard, showPrivate, tagFilter, sort]);
+
+  if (loading) {
+    return (
+      <div className="min-h-full flex items-center justify-center">
+        <p className="text-muted-foreground">読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-full flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground mb-4">ログインが必要です</p>
+          <Link href="/post">
+            <Button className="rounded-full gradient-amber">ログインする</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full px-4 sm:px-6">
@@ -117,10 +244,6 @@ export default function ProfilePage() {
                   <MessageCircle className="h-3.5 w-3.5" /> {totalComments}{" "}
                   comments
                 </span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Globe className="h-3.5 w-3.5 text-accent" />{" "}
-                  {myPrototypes.length} apps
-                </span>
               </div>
             </div>
             <Link href="/post">
@@ -149,25 +272,11 @@ export default function ProfilePage() {
               Liked
             </TabsTrigger>
             <TabsTrigger
-              value="apps"
-              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
-            >
-              <Globe className="h-4 w-4 mr-1.5" />
-              My Apps
-            </TabsTrigger>
-            <TabsTrigger
               value="comments"
               className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
             >
               <MessageCircle className="h-4 w-4 mr-1.5" />
               Comments
-            </TabsTrigger>
-            <TabsTrigger
-              value="feedback"
-              className="rounded-full data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 dark:data-[state=active]:bg-amber-900/30 dark:data-[state=active]:text-amber-200 px-4 py-2 text-sm"
-            >
-              <Bell className="h-4 w-4 mr-1.5" />
-              My Feedback
             </TabsTrigger>
           </TabsList>
 
@@ -246,87 +355,30 @@ export default function ProfilePage() {
                 <IdeaCard key={idea.id} idea={idea} />
               ))}
             </div>
+            {filteredIdeas.length === 0 && (
+              <Card className="p-12 text-center grain-overlay">
+                <Lightbulb className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">まだアイディアがありません</p>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Liked Ideas */}
           <TabsContent value="liked" className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                {likedIdeas.length}件のいいね
+                {likedIdeasForCard.length}件のいいね
               </span>
             </div>
             <div className="gap-3 flex flex-col">
-              {likedIdeas.map((idea) => (
+              {likedIdeasForCard.map((idea) => (
                 <IdeaCard key={idea.id} idea={idea} showAuthor />
               ))}
             </div>
-          </TabsContent>
-
-          {/* My Apps */}
-          <TabsContent value="apps" className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm text-muted-foreground">
-                {myPrototypes.length}件のプロトタイプ
-              </span>
-            </div>
-            {myPrototypes.length > 0 ? (
-              myPrototypes.map((proto) => (
-                <Card key={proto.id} className="p-5 grain-overlay">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
-                      <Globe className="h-5 w-5 text-accent" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/ideas/${proto.ideaId}`}
-                        className="font-bold hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-                      >
-                        {proto.title}
-                      </Link>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {proto.description}
-                      </p>
-                      <div className="flex items-center gap-3 mt-3">
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Heart className="h-3 w-3 text-rose-500" />{" "}
-                          {proto.likes}
-                        </span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <MessageCircle className="h-3 w-3" /> コメント
-                        </span>
-                      </div>
-                      <div className="flex gap-2 mt-3">
-                        {proto.githubUrl && (
-                          <a
-                            href={proto.githubUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full hover:bg-muted/80 transition-colors"
-                          >
-                            <GitFork className="h-3.5 w-3.5" /> GitHub
-                          </a>
-                        )}
-                        {proto.demoUrl && (
-                          <a
-                            href={proto.demoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-medium bg-accent text-accent-foreground px-3 py-1.5 rounded-full hover:opacity-90 transition-opacity"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" /> Demo
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            ) : (
+            {likedIdeasForCard.length === 0 && (
               <Card className="p-12 text-center grain-overlay">
-                <Globe className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">
-                  まだプロトタイプがありません
-                </p>
+                <Heart className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">まだいいねしたアイディアがありません</p>
               </Card>
             )}
           </TabsContent>
@@ -339,8 +391,8 @@ export default function ProfilePage() {
               </span>
             </div>
             <div className="gap-3 flex flex-col">
-              {myComments.map((comment, i) => (
-                <Link key={i} href={`/ideas/${comment.ideaId}`}>
+              {myComments.map((comment) => (
+                <Link key={comment.id} href={`/ideas/${comment.idea_id}`}>
                   <Card className="p-4 card-hover cursor-pointer grain-overlay">
                     <div className="flex items-start gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
@@ -348,19 +400,17 @@ export default function ProfilePage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-muted-foreground mb-1">
-                          「{comment.ideaTitle}」
-                          <span className="text-muted-foreground/60">
-                            {" "}
-                            by {comment.ideaAuthor}
-                          </span>{" "}
+                          「{comment.ideas?.title ?? "アイディア"}」
+                          {comment.ideas?.profiles?.name && (
+                            <span className="text-muted-foreground/60">
+                              {" "}by {comment.ideas.profiles.name}
+                            </span>
+                          )}{" "}
                           にコメント
                         </p>
                         <p className="text-sm leading-relaxed line-clamp-2">
                           &ldquo;{comment.content}&rdquo;
                         </p>
-                        <span className="text-xs text-muted-foreground mt-1.5 block">
-                          {comment.time}
-                        </span>
                       </div>
                       <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
                     </div>
@@ -368,66 +418,12 @@ export default function ProfilePage() {
                 </Link>
               ))}
             </div>
-          </TabsContent>
-
-          {/* My Feedback */}
-          <TabsContent value="feedback" className="space-y-4">
-            {notifications.map((notif, i) => (
-              <Card key={i} className="p-4 grain-overlay">
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                      notif.type === "like"
-                        ? "bg-rose-100 text-rose-500 dark:bg-rose-900/30 dark:text-rose-400"
-                        : notif.type === "comment"
-                          ? "bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400"
-                          : "bg-green-100 text-green-500 dark:bg-green-900/30 dark:text-green-400"
-                    }`}
-                  >
-                    {notif.type === "like" && <Heart className="h-4 w-4" />}
-                    {notif.type === "comment" && (
-                      <MessageCircle className="h-4 w-4" />
-                    )}
-                    {notif.type === "prototype" && (
-                      <Globe className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm leading-relaxed">
-                      {notif.type === "like" && (
-                        <>
-                          <span className="font-bold">
-                            {notif.count}件のいいね
-                          </span>{" "}
-                          がつきました
-                        </>
-                      )}
-                      {notif.type === "comment" && (
-                        <>
-                          <span className="font-bold">
-                            {notif.count}件のコメント
-                          </span>{" "}
-                          がつきました
-                        </>
-                      )}
-                      {notif.type === "prototype" && (
-                        <>
-                          あなたのアイディアに{" "}
-                          <span className="font-bold">プロトタイプ</span>{" "}
-                          が投稿されました
-                        </>
-                      )}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 truncate">
-                      「{notif.ideaTitle}」
-                    </p>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      {notif.time}
-                    </span>
-                  </div>
-                </div>
+            {myComments.length === 0 && (
+              <Card className="p-12 text-center grain-overlay">
+                <MessageCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">まだコメントがありません</p>
               </Card>
-            ))}
+            )}
           </TabsContent>
         </Tabs>
       </div>
