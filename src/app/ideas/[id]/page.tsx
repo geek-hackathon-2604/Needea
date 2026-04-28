@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,13 @@ export default function IdeaDetailPage() {
 
   const [likedProtoIds, setLikedProtoIds] = useState<Set<string>>(new Set());
   const [protoLocalLikes, setProtoLocalLikes] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const el = document.querySelector(hash);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  }, [params.id]);
 
   const getProtoLikes = (protoId: string, baseLikes: number) =>
     protoLocalLikes[protoId] ?? baseLikes;
