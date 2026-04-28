@@ -59,6 +59,19 @@ export default function ProfilePage() {
     (p) => p.author.name === "ユーザー",
   );
 
+  const topTags = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const idea of ideas) {
+      for (const tag of idea.tags) {
+        counts[tag] = (counts[tag] ?? 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([tag, count]) => ({ tag, count }));
+  }, [ideas]);
+
   const filteredIdeas = useMemo(() => {
     let filtered = showPrivate
       ? [...ideas]
@@ -159,7 +172,7 @@ export default function ProfilePage() {
           </TabsList>
 
           {/* My Ideas */}
-          <TabsContent value="ideas" className="space-y-4">
+          <TabsContent value="ideas" className="space-y-8">
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
               <span className="text-sm text-muted-foreground">
                 {filteredIdeas.length}件のアイディア
@@ -207,6 +220,27 @@ export default function ProfilePage() {
                 </Toggle>
               </div>
             </div>
+            {topTags.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap mt-10">
+                <span className="text-xs text-muted-foreground shrink-0">
+                  よく使うタグ
+                </span>
+                {topTags.map(({ tag }) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className={`text-xs rounded-full cursor-pointer transition-colors ${
+                      tag === tagFilter
+                        ? "bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-amber-100"
+                        : "hover:bg-amber-100 hover:text-amber-800 dark:hover:bg-amber-900/30 dark:hover:text-amber-300"
+                    }`}
+                    onClick={() => setTagFilter(tag === tagFilter ? "" : tag)}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
             <div className="gap-3 flex flex-col">
               {filteredIdeas.map((idea) => (
                 <IdeaCard key={idea.id} idea={idea} />
