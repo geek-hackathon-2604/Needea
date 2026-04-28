@@ -165,8 +165,7 @@
   100% { background-color: transparent; }
 }
 
-#comments:target,
-#prototypes:target {
+.section-highlight {
   animation: section-highlight 2s ease-out forwards;
   border-radius: 0.75rem;
   scroll-margin-top: 5rem;

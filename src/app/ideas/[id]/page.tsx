@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +52,7 @@ const mockProtoComments: Record<string, ProtoComment[]> = {
 
 export default function IdeaDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const idea = mockIdeas.find((i) => i.id === params.id) || mockIdeas[0];
   const comments = mockComments.filter((c) => c.ideaId === idea.id);
   const prototypes = mockPrototypes.filter((p) => p.ideaId === idea.id);
@@ -60,19 +61,17 @@ export default function IdeaDetailPage() {
   const [protoLocalLikes, setProtoLocalLikes] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const scrollToHash = () => {
-      const hash = window.location.hash;
-      if (!hash) return;
-      const el = document.querySelector(hash);
-      if (el) el.scrollIntoView({ behavior: "smooth" });
-    };
-    const timer = setTimeout(scrollToHash, 100);
-    window.addEventListener("hashchange", scrollToHash);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("hashchange", scrollToHash);
-    };
-  }, [params.id]);
+    const section = searchParams.get("section");
+    if (!section) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(section);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth" });
+      el.classList.add("section-highlight");
+      setTimeout(() => el.classList.remove("section-highlight"), 2000);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [searchParams]);
 
   const getProtoLikes = (protoId: string, baseLikes: number) =>
     protoLocalLikes[protoId] ?? baseLikes;

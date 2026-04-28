@@ -217,7 +217,7 @@ export default function IdeasFeedPage() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          window.location.href = `/ideas/${idea.id}#comments`;
+                          router.push(`/ideas/${idea.id}?section=comments`);
                         }}
                         className="flex items-center gap-1 hover:text-foreground transition-colors"
                       >
@@ -228,7 +228,7 @@ export default function IdeasFeedPage() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          window.location.href = `/ideas/${idea.id}#prototypes`;
+                          router.push(`/ideas/${idea.id}?section=prototypes`);
                         }}
                         className="flex items-center gap-1 hover:text-accent transition-colors"
                       >
