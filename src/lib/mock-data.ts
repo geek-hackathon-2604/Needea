@@ -319,7 +319,7 @@ export interface MockIdea {
   createdAt: string;
   status: "open" | "in_progress" | "resolved";
   visibility: "public" | "private";
-  needLevel: 1 | 2 | 3 | 4 | 5;
+  needLevel: number;
 }
 
 export const mockComments = [
@@ -395,6 +395,7 @@ export const mockUserProfile = {
       createdAt: "2026-04-26T23:15:00Z",
       status: "open" as const,
       visibility: "private" as const,
+      needLevel: 3,
     },
     {
       id: "u-private-2",
@@ -408,6 +409,7 @@ export const mockUserProfile = {
       createdAt: "2026-04-27T07:45:00Z",
       status: "open" as const,
       visibility: "private" as const,
+      needLevel: 2,
     },
   ],
   notifications: [
