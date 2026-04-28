@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockIdeas, mockComments, mockPrototypes } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import {
   Heart,
   MessageCircle,
@@ -50,10 +52,166 @@ const mockProtoComments: Record<string, ProtoComment[]> = {
   ],
 };
 
+type DbIdea = {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  likes: number;
+  comments: number;
+  status: "open" | "in_progress" | "resolved";
+  visibility: "public" | "private";
+  need_level: number;
+  chat_history: { question: string; answer: string }[] | null;
+  created_at: string;
+  user_id: string;
+  profiles: { name: string; avatar_url: string | null } | null;
+};
+
+type DbComment = {
+  id: string;
+  idea_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profiles: { name: string; avatar_url: string | null } | null;
+};
+
 export default function IdeaDetailPage() {
   const params = useParams();
-  const idea = mockIdeas.find((i) => i.id === params.id) || mockIdeas[0];
-  const comments = mockComments.filter((c) => c.ideaId === idea.id);
+  const searchParams = useSearchParams();
+  const supabase = createClient();
+  const ideaId = params.id as string;
+
+  const [dbIdea, setDbIdea] = useState<DbIdea | null>(null);
+  const [dbComments, setDbComments] = useState<DbComment[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState<number | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [isPostingComment, setIsPostingComment] = useState(false);
+
+  const mockIdea = mockIdeas.find((i) => i.id === ideaId) || mockIdeas[0];
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id ?? null);
+    });
+
+    supabase
+      .from("ideas")
+      .select("*, profiles(name, avatar_url)")
+      .eq("id", ideaId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setDbIdea(data as DbIdea);
+          setLikeCount(data.likes ?? 0);
+        }
+      });
+
+    supabase
+      .from("comments")
+      .select("*, profiles(name, avatar_url)")
+      .eq("idea_id", ideaId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) setDbComments(data as DbComment[]);
+      });
+  }, [ideaId]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    supabase
+      .from("likes")
+      .select("id")
+      .eq("idea_id", ideaId)
+      .eq("user_id", currentUserId)
+      .maybeSingle()
+      .then(({ data }) => setLiked(!!data));
+  }, [currentUserId, ideaId]);
+
+  useEffect(() => {
+    const section = searchParams.get("section");
+    if (!section) return;
+    const timer = setTimeout(() => {
+      const el = document.getElementById(section);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth" });
+      el.classList.add("section-highlight");
+      setTimeout(() => el.classList.remove("section-highlight"), 2000);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [searchParams]);
+
+  const handleToggleLike = async () => {
+    if (!currentUserId) { toast.error("ログインが必要です"); return; }
+    if (liked) {
+      await supabase.from("likes").delete().eq("idea_id", ideaId).eq("user_id", currentUserId);
+      await supabase.from("ideas").update({ likes: (likeCount ?? 1) - 1 }).eq("id", ideaId);
+      setLiked(false);
+      setLikeCount((n) => (n ?? 1) - 1);
+    } else {
+      await supabase.from("likes").insert({ idea_id: ideaId, user_id: currentUserId });
+      await supabase.from("ideas").update({ likes: (likeCount ?? 0) + 1 }).eq("id", ideaId);
+      setLiked(true);
+      setLikeCount((n) => (n ?? 0) + 1);
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!commentText.trim()) return;
+    if (!currentUserId) { toast.error("ログインが必要です"); return; }
+    setIsPostingComment(true);
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({ idea_id: ideaId, user_id: currentUserId, content: commentText.trim() })
+      .select("*, profiles(name, avatar_url)")
+      .single();
+    setIsPostingComment(false);
+    if (error) { toast.error("コメントの投稿に失敗しました"); return; }
+    setDbComments((prev) => [...prev, data as DbComment]);
+    setCommentText("");
+    await supabase.from("ideas").update({ comments: (idea.comments ?? 0) + 1 }).eq("id", ideaId);
+    toast.success("コメントを投稿しました");
+  };
+
+  const idea = dbIdea
+    ? {
+        id: dbIdea.id,
+        title: dbIdea.title,
+        content: dbIdea.content,
+        tags: dbIdea.tags ?? [],
+        likes: likeCount ?? dbIdea.likes,
+        comments: dbIdea.comments,
+        status: dbIdea.status,
+        visibility: dbIdea.visibility,
+        needLevel: dbIdea.need_level ?? 3,
+        chatHistory: dbIdea.chat_history ?? [],
+        createdAt: dbIdea.created_at,
+        author: {
+          name: dbIdea.profiles?.name ?? "Unknown",
+          avatar: (dbIdea.profiles?.name ?? "U").charAt(0).toUpperCase(),
+        },
+      }
+    : {
+        ...mockIdea,
+        likes: likeCount ?? mockIdea.likes,
+      };
+
+  const comments = dbComments.length > 0
+    ? dbComments.map((c) => ({
+        id: c.id,
+        ideaId: c.idea_id,
+        author: {
+          name: c.profiles?.name ?? "Unknown",
+          avatar: (c.profiles?.name ?? "U").charAt(0).toUpperCase(),
+        },
+        content: c.content,
+        createdAt: c.created_at,
+      }))
+    : mockComments.filter((c) => c.ideaId === idea.id);
+
   const prototypes = mockPrototypes.filter((p) => p.ideaId === idea.id);
 
   const [likedProtoIds, setLikedProtoIds] = useState<Set<string>>(new Set());
@@ -76,7 +234,6 @@ export default function IdeaDetailPage() {
     });
   };
 
-  // similar ideas: same tags, sorted by likes, exclude current
   const similarIdeas = mockIdeas
     .filter((i) => i.id !== idea.id && i.visibility === "public")
     .map((i) => ({
@@ -88,7 +245,7 @@ export default function IdeaDetailPage() {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6" key={params.id as string}>
+    <div className="min-h-screen py-8 px-4 sm:px-6" key={ideaId}>
       <div className="mx-auto max-w-4xl">
         <Link href="/ideas">
           <Button variant="ghost" size="sm" className="rounded-full gap-1 mb-6 -ml-3 text-muted-foreground">
@@ -127,9 +284,14 @@ export default function IdeaDetailPage() {
           </div>
 
           <div className="flex items-center gap-4 text-sm">
-            <Button variant="secondary" size="sm" className="rounded-full gap-1.5">
-              <Heart className="h-4 w-4 text-rose-500" />
-              共感 {idea.likes}
+            <Button
+              variant="secondary"
+              size="sm"
+              className={`rounded-full gap-1.5 ${liked ? "text-rose-500" : ""}`}
+              onClick={handleToggleLike}
+            >
+              <Heart className={`h-4 w-4 ${liked ? "fill-rose-500 text-rose-500" : "text-rose-500"}`} />
+              共感 {likeCount ?? idea.likes}
             </Button>
             <Button variant="secondary" size="sm" className="rounded-full gap-1.5">
               <Share2 className="h-4 w-4" />
@@ -155,39 +317,41 @@ export default function IdeaDetailPage() {
             </Card>
 
             {/* AI Chat History */}
-            <Card className="p-6 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 grain-overlay">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-amber-500" />
-                <h2 className="font-bold text-lg">AIヒアリング履歴</h2>
-              </div>
-              <p className="text-xs text-muted-foreground mb-4">
-                投稿者とAIの会話です。アイディアの背景やコンテキストをより深く理解できます。
-              </p>
-              <div className="space-y-4">
-                {idea.chatHistory.map((chat, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex gap-2">
-                      <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
-                          <Sparkles className="h-3 w-3" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-                        {chat.question}
-                      </p>
+            {idea.chatHistory.length > 0 && (
+              <Card className="p-6 bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800 grain-overlay">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-5 w-5 text-amber-500" />
+                  <h2 className="font-bold text-lg">AIヒアリング履歴</h2>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  投稿者とAIの会話です。アイディアの背景やコンテキストをより深く理解できます。
+                </p>
+                <div className="space-y-4">
+                  {idea.chatHistory.map((chat, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex gap-2">
+                        <Avatar className="h-6 w-6 shrink-0">
+                          <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
+                            <Sparkles className="h-3 w-3" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                          {chat.question}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 pl-8">
+                        <Avatar className="h-6 w-6 shrink-0">
+                          <AvatarFallback className="text-[10px]">{idea.author.avatar}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                          {chat.answer}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex gap-2 pl-8">
-                      <Avatar className="h-6 w-6 shrink-0">
-                        <AvatarFallback className="text-[10px]">{idea.author.avatar}</AvatarFallback>
-                      </Avatar>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {chat.answer}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+                  ))}
+                </div>
+              </Card>
+            )}
 
             {/* Comments */}
             <div id="comments">
@@ -228,9 +392,19 @@ export default function IdeaDetailPage() {
                     <AvatarFallback className="text-xs">U</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-3">
-                    <Textarea placeholder="コメントを書く..." className="min-h-20 resize-none rounded-xl text-sm" />
+                    <Textarea
+                      placeholder="コメントを書く..."
+                      className="min-h-20 resize-none rounded-xl text-sm"
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                    />
                     <div className="flex justify-end">
-                      <Button size="sm" className="rounded-full gap-1.5 gradient-amber">
+                      <Button
+                        size="sm"
+                        className="rounded-full gap-1.5 gradient-amber"
+                        onClick={handlePostComment}
+                        disabled={isPostingComment || !commentText.trim()}
+                      >
                         <Send className="h-3.5 w-3.5" /> 投稿
                       </Button>
                     </div>
