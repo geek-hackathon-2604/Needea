@@ -19,6 +19,7 @@ export const mockIdeas = [
     createdAt: "2026-04-25T08:30:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "2",
@@ -39,6 +40,7 @@ export const mockIdeas = [
     createdAt: "2026-04-24T18:15:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
   {
     id: "3",
@@ -60,6 +62,7 @@ export const mockIdeas = [
     createdAt: "2026-04-23T12:00:00Z",
     status: "in_progress" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "4",
@@ -80,6 +83,7 @@ export const mockIdeas = [
     createdAt: "2026-04-22T09:45:00Z",
     status: "open" as const,
     visibility: "public" as const,
+    needLevel: 4,
   },
   {
     id: "5",
@@ -100,6 +104,7 @@ export const mockIdeas = [
     createdAt: "2026-04-21T22:30:00Z",
     status: "resolved" as const,
     visibility: "public" as const,
+    needLevel: 5,
   },
   {
     id: "6",
@@ -121,6 +126,176 @@ export const mockIdeas = [
     createdAt: "2026-04-20T15:00:00Z",
     status: "open" as const,
     visibility: "private" as const,
+    needLevel: 3,
+  },
+  {
+    id: "7",
+    title: "一人暮らしの高齢者の安否確認を、自然な形でしたい",
+    content:
+      "離れて暮らす親のことが心配。電話すると「大丈夫」しか言わないけど、本当に元気なのかわからない。でも監視はしたくないし、親もそういうのを嫌がる。",
+    chatHistory: [
+      { question: "どんな時に一番心配になりますか？", answer: "災害があった時と、あと日常的に「ちゃんと食べてるのかな」っていう不安。親は心配かけたくないから電話では元気そうに振る舞うんですよね。" },
+      { question: "どういう形なら親御さんも受け入れてくれそうですか？", answer: "カメラとかは絶対嫌がる。でも、例えばポットの使用履歴とかTVのオンオフみたいな、生活の中のさりげない情報で「いつも通り」がわかれば安心。異常があった時だけ通知があればいい。" },
+    ],
+    tags: ["高齢者", "見守り", "健康", "家族"],
+    likes: 356,
+    comments: 42,
+    author: {
+      name: "中村 正一",
+      avatar: "N",
+    },
+    createdAt: "2026-04-26T10:00:00Z",
+    status: "open" as const,
+    visibility: "public" as const,
+    needLevel: 4,
+  },
+  {
+    id: "8",
+    title: "会議の時間が長すぎる問題をなんとかしたい",
+    content:
+      "打ち合わせの半分は無駄な時間。特に「結論から言って」って思うような前置きが長い会議が多すぎる。会議時間を自動で短くする仕組みが欲しい。",
+    chatHistory: [
+      { question: "特にどんな会議が無駄に感じますか？", answer: "定例の進捗報告会。一人ずつダラダラ話すから1時間じゃ足りない。でも事前に資料読めば5分で済む内容ばかり。" },
+      { question: "理想の会議ってどんな感じですか？", answer: "事前に議題と資料が共有されてて、会議では「決めること」だけ。タイマーがついてて、時間オーバーしたら強制終了。議事録も自動生成される。" },
+    ],
+    tags: ["仕事", "効率化", "コミュニケーション"],
+    likes: 287,
+    comments: 23,
+    author: {
+      name: "加藤 隆",
+      avatar: "K",
+    },
+    createdAt: "2026-04-26T09:15:00Z",
+    status: "open" as const,
+    visibility: "public" as const,
+    needLevel: 3,
+  },
+  {
+    id: "9",
+    title: "ペンギンが滑るアプリを作りたい",
+    content:
+      "氷の上をペンギンが滑って、障害物を避けながら魚を集めるゲーム。傾きセンサーで操作できたら子どもでも楽しめる。なぜかわからないけど滑るペンギンを見てると癒される。",
+    chatHistory: [
+      { question: "どうしてペンギンが滑るアプリが面白いと思ったんですか？", answer: "この前水族館でペンギンが氷の上で滑ってるのを見て、めっちゃ癒されたんです。それをスマホでいつでも見られたらいいなと思って。" },
+      { question: "誰に遊んでほしいですか？", answer: "まずは子ども。操作が簡単で、滑るのが面白いだけのシンプルなゲーム。でも大人も癒し系としてハマるかも。BGMはゆるい感じで。" },
+      { question: "どんな機能があるといいですか？", answer: "傾きセンサーで方向操作、いろんな種類のペンギンが選べて、コスチュームも変えられる。世界中のステージ（南極とか、まちなかとか）で滑れると面白い。" },
+    ],
+    tags: ["ゲーム", "癒し", "子ども向け", "エンタメ"],
+    likes: 156,
+    comments: 12,
+    author: {
+      name: "渡辺 みゆき",
+      avatar: "W",
+    },
+    createdAt: "2026-04-26T14:30:00Z",
+    status: "open" as const,
+    visibility: "public" as const,
+    needLevel: 2,
+  },
+  {
+    id: "10",
+    title: "自炊のレシピを冷蔵庫の残り物から提案してほしい",
+    content:
+      "料理は好きだけど、レシピを考えるのが面倒。冷蔵庫にある食材を入力したら、それで作れるレシピを提案してくれるアプリが欲しい。「あと何を買えば一品増える」も教えてくれると最高。",
+    chatHistory: [
+      { question: "レシピ検索と何が違いますか？", answer: "レシピ検索って「作りたいもの」から検索するじゃないですか。そうじゃなくて「あるもの」から逆引きしたい。今日は卵とほうれん草があるから、これで何が作れる？っていう。" },
+      { question: "誰に使ってほしいですか？", answer: "自炊してる人全般。特に一人暮らしで食材を余らせがちな人。あと「冷蔵庫にあるものでなんとかしたい」っていう忙しい日の共働き家庭。" },
+    ],
+    tags: ["料理", "家事", "効率化", "食品ロス"],
+    likes: 445,
+    comments: 34,
+    author: {
+      name: "松本 さくら",
+      avatar: "M",
+    },
+    createdAt: "2026-04-25T19:00:00Z",
+    status: "in_progress" as const,
+    visibility: "public" as const,
+    needLevel: 4,
+  },
+  {
+    id: "11",
+    title: "公共トイレの清潔さがリアルタイムでわかるマップ",
+    content:
+      "外出先でトイレに行きたくなったとき、清潔なトイレがどこにあるかわからない。特に子連れの時はオムツ替え台があるかも重要。ユーザーが清潔さを評価できるマップが欲しい。",
+    chatHistory: [
+      { question: "なぜ今のマップアプリではダメなんですか？", answer: "トイレの場所はわかっても、清潔さや設備は実際に行ってみないとわからない。特に子ども連れだと、行ってから「オムツ替え台がない」だと困る。" },
+      { question: "どんな情報があれば十分ですか？", answer: "清潔さの5段階評価、オムツ替え台の有無、ウォシュレットの有無、混雑状況。できれば写真も。ユーザーが投票できると情報が最新に保たれる。" },
+    ],
+    tags: ["子育て", "マップ", "生活", "公共"],
+    likes: 198,
+    comments: 15,
+    author: {
+      name: "山本 真理",
+      avatar: "Y",
+    },
+    createdAt: "2026-04-24T11:20:00Z",
+    status: "open" as const,
+    visibility: "public" as const,
+    needLevel: 3,
+  },
+  {
+    id: "12",
+    title: "推し活の出費を自動で集計して予算管理したい",
+    content:
+      "推しのグッズやイベントにお金を使いすぎてしまう。どのくらい使ったか可視化して、月ごとの予算を設定できるアプリが欲しい。SNSと連携して推し活のスケジュール管理もできると嬉しい。",
+    chatHistory: [
+      { question: "どんなふうに出費が膨らみますか？", answer: "気づいたらポチってるんです。限定グッズが出るたびに買っちゃうし、イベント遠征費もバカにならない。月にいくら使ったか把握してない。" },
+      { question: "アプリに求めることは？", answer: "レシートを撮ると自動で分類してくれて、予算オーバーしそうなら警告。遠征費の計算もしてほしい。あと同じ推しのファンと予算感を共有できるSNS的な機能もあると嬉しい。" },
+    ],
+    tags: ["趣味", "お金", "女性向け", "ライフスタイル"],
+    likes: 523,
+    comments: 67,
+    author: {
+      name: "小林 あかり",
+      avatar: "K",
+    },
+    createdAt: "2026-04-23T21:30:00Z",
+    status: "open" as const,
+    visibility: "public" as const,
+    needLevel: 5,
+  },
+  {
+    id: "13",
+    title: "オンライン授業中に寝てる学生を起こすシステム",
+    content:
+      "オンライン授業だと学生が寝てても気づけない。カメラで顔を検知して、寝てる学生がいたらバイブレーションで起こしてくれる機能が欲しい。でも監視っぽくならないようにしたい。",
+    chatHistory: [
+      { question: "なぜそれが問題だと思いますか？", answer: "僕自身が寝ちゃう側なんです。対面の授業なら先生に当てられて起きるけど、オンラインだと誰も気づかない。寝ててもビデオはオンだから、先生からも見えてるはずなんですけどね。" },
+      { question: "どんな仕組みがいいですか？", answer: "AIが顔を検知して、寝てそうな学生だけにバイブレーション。先生には「注意している学生がいます」くらいの通知だけで、個人を特定しない。あと寝てた時間の録画を後で見返せるように。" },
+    ],
+    tags: ["教育", "学生向け", "AI", "オンライン"],
+    likes: 267,
+    comments: 38,
+    author: {
+      name: "伊藤 翔",
+      avatar: "I",
+    },
+    createdAt: "2026-04-22T16:45:00Z",
+    status: "resolved" as const,
+    visibility: "public" as const,
+    needLevel: 2,
+  },
+  {
+    id: "14",
+    title: "近所のスーパーのリアルタイム特売情報をまとめてほしい",
+    content:
+      "スーパーのはしごを効率的にしたい。特売情報が各店舗バラバラで比較できない。今日どのスーパーに行くべきか、AIが教えてくれると買い物の時短になる。",
+    chatHistory: [
+      { question: "今はどうやって特売情報を集めていますか？", answer: "各スーパーのチラシをアプリで1枚ずつ見てる。でも面倒で、結局いつものスーパーに行っちゃう。まとめて比較できたら、たまには違う店にも行くのに。" },
+      { question: "どんな情報が特に重要ですか？", answer: "やっぱり生鮮食品の特売。肉と野菜はスーパーごとに値段が全然違う。自分の買い物リストと特売を照らし合わせて「どのスーパーに行くべきか」を提案してくれると嬉しい。" },
+    ],
+    tags: ["家事", "節約", "主婦向け", "地域"],
+    likes: 390,
+    comments: 21,
+    author: {
+      name: "田中 優子",
+      avatar: "T",
+    },
+    createdAt: "2026-04-21T07:00:00Z",
+    status: "open" as const,
+    visibility: "public" as const,
+    needLevel: 4,
   },
 ];
 
@@ -144,6 +319,7 @@ export interface MockIdea {
   createdAt: string;
   status: "open" | "in_progress" | "resolved";
   visibility: "public" | "private";
+  needLevel: number;
 }
 
 export const mockComments = [
@@ -199,14 +375,43 @@ export const mockPrototypes = [
 export const mockUserProfile = {
   name: "ユーザー",
   avatar: "U",
-  totalIdeas: 8,
+  totalIdeas: 6,
   totalLikes: 1245,
   totalComments: 67,
   totalContributions: 23,
-  ideas: mockIdeas.slice(0, 3).map((idea) => ({
-    ...idea,
-    author: { name: "ユーザー", avatar: "U" },
-  })),
+  ideas: [
+    { ...mockIdeas[0], author: { name: "ユーザー", avatar: "U" }, visibility: "public" as const },
+    { ...mockIdeas[3], author: { name: "ユーザー", avatar: "U" }, visibility: "public" as const },
+    { ...mockIdeas[7], author: { name: "ユーザー", avatar: "U" }, visibility: "public" as const },
+    {
+      id: "u-private-1",
+      title: "家計簿アプリにAI予測機能が欲しい",
+      content: "手動で家計簿つけるのが面倒。銀行やクレカから自動で取り込んで、来月の支出をAIが予測してくれると助かる。でもまだ誰にも見せたくないアイディア。",
+      chatHistory: [],
+      tags: ["お金", "家計", "AI"],
+      likes: 0,
+      comments: 0,
+      author: { name: "ユーザー", avatar: "U" },
+      createdAt: "2026-04-26T23:15:00Z",
+      status: "open" as const,
+      visibility: "private" as const,
+      needLevel: 3,
+    },
+    {
+      id: "u-private-2",
+      title: "図書館の蔵書をAIがおすすめしてくれるサービス",
+      content: "図書館に行っても何を借りていいかわからない。過去の貸出履歴と今の気分からAIがおすすめしてほしい。自分用のメモとして残しておく。",
+      chatHistory: [],
+      tags: ["読書", "AI", "図書館", "生活"],
+      likes: 0,
+      comments: 0,
+      author: { name: "ユーザー", avatar: "U" },
+      createdAt: "2026-04-27T07:45:00Z",
+      status: "open" as const,
+      visibility: "private" as const,
+      needLevel: 2,
+    },
+  ],
   notifications: [
     { type: "like" as const, ideaTitle: "冷蔵庫の中身を自動で管理してくれるアプリが欲しい", count: 12, time: "2時間前" },
     { type: "comment" as const, ideaTitle: "ゴミ出しの日を忘れないように通知してほしい", count: 3, time: "昨日" },
@@ -216,6 +421,12 @@ export const mockUserProfile = {
     { ideaTitle: "勉強中にスマホを触っちゃうのを強制的にブロックしたい", action: "コメントしました", time: "3日前" },
     { ideaTitle: "子供の習い事の送迎をシェアできる仕組みが欲しい", action: "いいねしました", time: "1週間前" },
     { ideaTitle: "病院の待ち時間を有効活用したい", action: "プロトタイプを投稿しました", time: "2週間前" },
+  ],
+  myComments: [
+    { ideaId: "1", ideaTitle: "冷蔵庫の中身を自動で管理してくれるアプリが欲しい", content: "これすごく共感します！うちも同じ悩みです。期限切れアラートがあるといいですね。", time: "2時間前", ideaAuthor: "田中 優子" },
+    { ideaId: "5", ideaTitle: "勉強中にスマホを触っちゃうのを強制的にブロックしたい", content: "友達とペアで制御するアイディアいいですね。自分も使ってみたいです。", time: "3日前", ideaAuthor: "伊藤 翔" },
+    { ideaId: "12", ideaTitle: "推し活の出費を自動で集計して予算管理したい", content: "推し活あるあるですね...遠征費の計算機能は需要ありそうです。", time: "1週間前", ideaAuthor: "小林 あかり" },
+    { ideaId: "10", ideaTitle: "自炊のレシピを冷蔵庫の残り物から提案してほしい", content: "冷蔵庫にあるもので作れるのは便利！ジャンルも選べるといいですね。", time: "2週間前", ideaAuthor: "松本 さくら" },
   ],
 };
 

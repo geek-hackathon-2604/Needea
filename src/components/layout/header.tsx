@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,10 @@ import {
   Moon,
   LogOut,
   Sparkles,
+  LogIn,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -33,13 +36,40 @@ const navLinks = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${location.origin}/auth/callback` },
+    });
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
+
+  const avatarUrl = user?.user_metadata?.avatar_url;
+  const displayName = user?.user_metadata?.full_name ?? user?.user_metadata?.user_name ?? "U";
+  const initials = displayName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl grain-overlay">
@@ -50,7 +80,7 @@ export function Header() {
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <span className="font-heading text-xl font-black tracking-tight">
-            Idea<span className="gradient-text">Hub</span>
+            <span className="gradient-text">Needia</span>
           </span>
         </Link>
 
@@ -86,40 +116,49 @@ export function Header() {
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
           </Button>
 
-          <Link href="/post">
-            <Button className="rounded-full gap-1.5 gradient-amber hover:opacity-90 transition-opacity shadow-md shadow-amber-500/20">
-              <PlusCircle className="h-4 w-4" />
-              <span className="font-medium">Post Idea</span>
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Link href="/post">
+                <Button className="rounded-full gap-1.5 gradient-amber hover:opacity-90 transition-opacity shadow-md shadow-amber-500/20">
+                  <PlusCircle className="h-4 w-4" />
+                  <span className="font-medium">新規投稿</span>
+                </Button>
+              </Link>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Avatar className="h-8 w-8 ring-2 ring-amber-200 dark:ring-amber-800 cursor-pointer">
-                <AvatarFallback className="bg-amber-100 text-amber-700 text-xs font-bold dark:bg-amber-900 dark:text-amber-300">
-                  U
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>
-                <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
-                  <User className="h-4 w-4" />
-                  My Page
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link href="/post" className="flex items-center gap-2 cursor-pointer">
-                  <Lightbulb className="h-4 w-4" />
-                  Post Idea
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="gap-2 text-muted-foreground cursor-pointer">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar className="h-8 w-8 ring-2 ring-amber-200 dark:ring-amber-800 cursor-pointer">
+                    <AvatarImage src={avatarUrl} alt={displayName} />
+                    <AvatarFallback className="bg-amber-100 text-amber-700 text-xs font-bold dark:bg-amber-900 dark:text-amber-300">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => router.push("/profile")} className="gap-2 cursor-pointer">
+                    <User className="h-4 w-4" />
+                    My Page
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push("/post")} className="gap-2 cursor-pointer">
+                    <Lightbulb className="h-4 w-4" />
+                    新規投稿
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="gap-2 text-muted-foreground cursor-pointer">
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <Button
+              onClick={handleSignIn}
+              className="rounded-full gap-1.5 gradient-amber hover:opacity-90 transition-opacity shadow-md shadow-amber-500/20"
+            >
+              <LogIn className="h-4 w-4" />
+              <span className="font-medium">ログイン</span>
+            </Button>
+          )}
         </div>
 
         {/* Mobile Nav */}
@@ -136,10 +175,8 @@ export function Header() {
           </Button>
 
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="rounded-full" aria-label="Open menu">
-                <Menu className="h-5 w-5" />
-              </Button>
+            <SheetTrigger className="inline-flex items-center justify-center rounded-full p-2 hover:bg-muted transition-colors" aria-label="Open menu">
+              <Menu className="h-5 w-5" />
             </SheetTrigger>
             <SheetContent side="right" className="w-72 pt-12">
               <nav className="flex flex-col gap-1">
@@ -157,13 +194,26 @@ export function Header() {
                     </Button>
                   </Link>
                 ))}
-                <div className="mt-4">
-                  <Link href="/post" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full rounded-full gap-2 gradient-amber">
-                      <PlusCircle className="h-4 w-4" />
-                      Post Idea
+                <div className="mt-4 flex flex-col gap-2">
+                  {user ? (
+                    <>
+                      <Link href="/post" onClick={() => setMobileOpen(false)}>
+                        <Button className="w-full rounded-full gap-2 gradient-amber">
+                          <PlusCircle className="h-4 w-4" />
+                          新規投稿
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" onClick={handleSignOut} className="w-full gap-2 text-muted-foreground">
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={handleSignIn} className="w-full rounded-full gap-2 gradient-amber">
+                      <LogIn className="h-4 w-4" />
+                      Googleでログイン
                     </Button>
-                  </Link>
+                  )}
                 </div>
               </nav>
             </SheetContent>
