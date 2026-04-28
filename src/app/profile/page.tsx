@@ -78,8 +78,8 @@ export default function ProfilePage() {
     <div className="min-h-screen py-8 px-4 sm:px-6">
       <div className="mx-auto max-w-4xl">
         {/* Profile Header */}
-        <Card className="p-6 sm:p-8 mb-8 grain-overlay overflow-hidden relative">
-          <div className="absolute top-0 left-0 right-0 h-32 gradient-amber rounded-t-xl opacity-20 dark:opacity-10" />
+        <Card className="p-6 sm:p-8 mb-8 grain-overlay overflow-hidden relative ">
+          <div className="absolute top-0 left-0 right-0 h-full gradient-amber opacity-20 dark:opacity-10" />
           <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
             <Avatar className="h-20 w-20 ring-4 ring-background shadow-lg">
               <AvatarFallback className="text-2xl font-black bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300">
