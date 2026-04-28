@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
 import { mockIdeas, MockIdea, mockPrototypes } from "@/lib/mock-data";
 import { SORT_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import {
   Heart,
   MessageCircle,
@@ -41,15 +42,47 @@ import {
 
 const FREE_VIEW_LIMIT = 20;
 
+type Idea = {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  likes: number;
+  comments: number;
+  status: "open" | "in_progress" | "resolved";
+  visibility: "public" | "private";
+  createdAt?: string;
+  created_at?: string;
+  needLevel?: number;
+  need_level?: number;
+  author?: { name: string; avatar: string };
+  profiles?: { name: string; avatar_url: string | null };
+  chatHistory?: { question: string; answer: string }[];
+  chat_history?: { question: string; answer: string }[];
+};
+
 export default function IdeasFeedPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [sort, setSort] = useState<keyof typeof SORT_LABELS>("likes");
   const [searchQuery, setSearchQuery] = useState("");
   const [showGate, setShowGate] = useState(false);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
   const [localLikes, setLocalLikes] = useState<Record<string, number>>({});
+  const [dbIdeas, setDbIdeas] = useState<Idea[]>([]);
 
-  const sorted = [...mockIdeas]
+  useEffect(() => {
+    supabase
+      .from("ideas")
+      .select("*, profiles(name, avatar_url)")
+      .eq("visibility", "public")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => { if (data?.length) setDbIdeas(data as Idea[]); });
+  }, []);
+
+  const allIdeas: Idea[] = dbIdeas.length > 0 ? dbIdeas : (mockIdeas as unknown as Idea[]);
+
+  const sorted = [...allIdeas]
     .filter((idea) => idea.visibility === "public")
     .filter((idea) => {
       if (!searchQuery) return true;
@@ -64,7 +97,7 @@ export default function IdeasFeedPage() {
       if (sort === "likes") return b.likes - a.likes;
       if (sort === "newest")
         return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(b.createdAt ?? b.created_at ?? 0).getTime() - new Date(a.createdAt ?? a.created_at ?? 0).getTime()
         );
       if (sort === "unresolved") {
         if (a.status === "open" && b.status !== "open") return -1;
@@ -77,11 +110,11 @@ export default function IdeasFeedPage() {
   const visibleIdeas = sorted.slice(0, FREE_VIEW_LIMIT);
   const hasMore = sorted.length > FREE_VIEW_LIMIT;
 
-  const getLikes = (idea: MockIdea) => localLikes[idea.id] ?? idea.likes;
+  const getLikes = (idea: Idea) => localLikes[idea.id] ?? idea.likes;
   const getPrototypeCount = (ideaId: string) =>
     mockPrototypes.filter((p) => p.ideaId === ideaId).length;
 
-  const handleToggleLike = (e: React.MouseEvent, idea: MockIdea) => {
+  const handleToggleLike = (e: React.MouseEvent, idea: Idea) => {
     e.preventDefault();
     e.stopPropagation();
     setLikedIds((prev) => {
@@ -163,6 +196,8 @@ export default function IdeasFeedPage() {
           {visibleIdeas.map((idea) => {
             const protoCount = getPrototypeCount(idea.id);
             const liked = likedIds.has(idea.id);
+            const authorName = idea.profiles?.name ?? idea.author?.name ?? "Unknown";
+            const authorInitial = authorName.charAt(0).toUpperCase();
             return (
               <Link key={idea.id} href={`/ideas/${idea.id}`}>
                 <Card className="overflow-hidden card-hover grain-overlay cursor-pointer h-full flex flex-col">
@@ -191,16 +226,16 @@ export default function IdeasFeedPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        router.push(`/users/${idea.author.name}`);
+                        router.push(`/users/${authorName}`);
                       }}
                     >
                       <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">
-                          {idea.author.avatar}
+                          {authorInitial}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-xs text-muted-foreground">
-                        {idea.author.name}
+                        {authorName}
                       </span>
                     </span>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
