@@ -137,12 +137,12 @@ export default function LandingPage() {
       {/* Footer CTA */}
       <section className="py-24 px-4 sm:px-6 text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-4xl sm:text-5xl font-black tracking-tight">
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight [word-break:auto-phrase]">
             あなたの<span className="gradient-text">アイディアの種</span>を
             <br />
             シェアしよう
           </h2>
-          <p className="mt-4 text-muted-foreground text-lg">
+          <p className="mt-4 text-muted-foreground text-lg [word-break:auto-phrase]">
             AIがあなたのアイディアの言語化をサポートします。まずは気軽に話しかけてみてください。
           </p>
           <div className="mt-8">
