@@ -10,12 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockIdeas, mockComments, mockPrototypes } from "@/lib/mock-data";
 import { formatDate } from "@/lib/utils";
@@ -34,6 +28,7 @@ import {
   Reply,
   X,
   Star,
+  ChevronDown,
 } from "lucide-react";
 
 interface ProtoComment {
@@ -372,7 +367,7 @@ function ProtoCard({
   likes: number;
   onLike: () => void;
 }) {
-  const [modalOpen, setModalOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const protoComments = mockProtoComments[proto.id] || [];
   const [localComments, setLocalComments] = useState<ProtoComment[]>(protoComments);
   const [newComment, setNewComment] = useState("");
@@ -396,8 +391,8 @@ function ProtoCard({
   const repliesFor = (commentId: string) => localComments.filter((c) => c.replyToId === commentId);
 
   return (
-    <>
-      <Card className="p-5 grain-overlay">
+    <Card className="grain-overlay overflow-hidden">
+      <div className="p-5">
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10">
             <Globe className="h-5 w-5 text-accent" />
@@ -427,10 +422,9 @@ function ProtoCard({
           </div>
         </div>
 
-        {/* Comment action — visually distinct, inviting */}
         <Separator className="my-4" />
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={() => setCommentsOpen((v) => !v)}
           className="cursor-pointer w-full group flex items-center justify-between rounded-xl px-4 py-3 bg-accent/5 hover:bg-accent/10 transition-all duration-300 border border-transparent hover:border-accent/20"
         >
           <div className="flex items-center gap-3">
@@ -448,44 +442,28 @@ function ProtoCard({
               </p>
             </div>
           </div>
-          <div className="flex -space-x-2">
-            {[...new Set(localComments.map((c) => c.author.avatar))].slice(0, 3).map((av, i) => (
-              <Avatar key={i} className="h-6 w-6 ring-2 ring-background">
-                <AvatarFallback className="text-[9px] bg-accent/10 text-accent">{av}</AvatarFallback>
-              </Avatar>
-            ))}
-            {localComments.length > 0 && (
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 ring-2 ring-background">
-                <span className="text-[9px] font-bold text-accent">+{localComments.length}</span>
-              </div>
-            )}
-          </div>
-        </button>
-      </Card>
-
-      {/* Prototype Comment Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col p-0">
-          <DialogHeader className="p-5 pb-0">
-            <DialogTitle className="text-lg">{proto.title}</DialogTitle>
-            <p className="text-sm text-muted-foreground">{proto.description}</p>
-          </DialogHeader>
-          <div className="p-5 pb-0 flex items-center gap-2">
-            <div className="flex gap-1.5">
-              {proto.demoUrl && (
-                <a href={proto.demoUrl} target="_blank" rel="noopener noreferrer" className="text-xs bg-accent text-accent-foreground px-3 py-1 rounded-full hover:opacity-90 inline-flex items-center gap-1">
-                  <ExternalLink className="h-3 w-3" /> Demo
-                </a>
-              )}
-              {proto.githubUrl && (
-                <a href={proto.githubUrl} target="_blank" rel="noopener noreferrer" className="text-xs bg-muted px-3 py-1 rounded-full hover:bg-muted/80 inline-flex items-center gap-1">
-                  <GitFork className="h-3 w-3" /> GitHub
-                </a>
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {[...new Set(localComments.map((c) => c.author.avatar))].slice(0, 3).map((av, i) => (
+                <Avatar key={i} className="h-6 w-6 ring-2 ring-background">
+                  <AvatarFallback className="text-[9px] bg-accent/10 text-accent">{av}</AvatarFallback>
+                </Avatar>
+              ))}
+              {localComments.length > 0 && (
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 ring-2 ring-background">
+                  <span className="text-[9px] font-bold text-accent">+{localComments.length}</span>
+                </div>
               )}
             </div>
-            <span className="text-xs text-muted-foreground ml-auto">by {proto.author.name}</span>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${commentsOpen ? "rotate-180" : ""}`} />
           </div>
-          <ScrollArea className="flex-1 p-5 max-h-[50vh]">
+        </button>
+      </div>
+
+      {/* Inline comment section */}
+      {commentsOpen && (
+        <div className="border-t">
+          <ScrollArea className="max-h-72 px-5 py-4">
             <div className="space-y-4">
               {topLevelComments.map((comment) => (
                 <div key={comment.id}>
@@ -513,7 +491,6 @@ function ProtoCard({
                       </button>
                     </div>
                   </div>
-                  {/* Replies */}
                   {repliesFor(comment.id).length > 0 && (
                     <div className="ml-10 mt-2 space-y-2 border-l-2 border-muted pl-4">
                       {repliesFor(comment.id).map((reply) => (
@@ -538,14 +515,13 @@ function ProtoCard({
                 </div>
               ))}
               {topLevelComments.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-6">
+                <p className="text-sm text-muted-foreground text-center py-4">
                   まだコメントがありません。最初のコメントを書きましょう！
                 </p>
               )}
             </div>
           </ScrollArea>
-          {/* Comment Input */}
-          <div className="p-4 border-t bg-card">
+          <div className="px-5 pb-4 pt-2 border-t">
             {replyToId && (
               <div className="flex items-center justify-between text-xs text-muted-foreground mb-2 p-2 bg-muted rounded-lg">
                 <Reply className="h-3 w-3" /> 返信を書いています...
@@ -555,26 +531,25 @@ function ProtoCard({
               </div>
             )}
             <div className="flex gap-2">
-              <Textarea
+              <Input
                 placeholder={replyToId ? "返信を書く..." : "コメントを書く..."}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.shiftKey) {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     handleAddComment();
                   }
                 }}
-                className="min-h-9 h-9 resize-none rounded-xl text-sm"
-                rows={1}
+                className="rounded-xl text-sm"
               />
               <Button size="icon" onClick={handleAddComment} disabled={!newComment.trim()} className="shrink-0 rounded-xl gradient-amber">
                 <Send className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+      )}
+    </Card>
   );
 }
