@@ -172,11 +172,11 @@ function IdeaCard({
 }) {
   return (
     <Card
-      className={`overflow-hidden card-hover grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500 `}
+      className={`overflow-hidden card-hover grain-overlay animate-in fade-in slide-in-from-bottom-4 duration-500 hover:cursor-pointer`}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <div className="p-5 flex-1">
-        <h3 className="font-bold text-lg leading-snug line-clamp-2 mb-3">
+        <h3 className="font-bold text-lg leading-snug line-clamp-2 mb-3 ">
           {idea.title}
         </h3>
         <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
