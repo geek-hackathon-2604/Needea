@@ -160,6 +160,18 @@
   }
 }
 
+@keyframes section-highlight {
+  0%   { background-color: oklch(0.68 0.17 75 / 0.15); }
+  100% { background-color: transparent; }
+}
+
+#comments:target,
+#prototypes:target {
+  animation: section-highlight 2s ease-out forwards;
+  border-radius: 0.75rem;
+  scroll-margin-top: 5rem;
+}
+
 @utility mask-blur {
   position: relative;
   &::after {

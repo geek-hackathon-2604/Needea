@@ -60,10 +60,18 @@ export default function IdeaDetailPage() {
   const [protoLocalLikes, setProtoLocalLikes] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash) return;
-    const el = document.querySelector(hash);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    const scrollToHash = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    };
+    const timer = setTimeout(scrollToHash, 100);
+    window.addEventListener("hashchange", scrollToHash);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("hashchange", scrollToHash);
+    };
   }, [params.id]);
 
   const getProtoLikes = (protoId: string, baseLikes: number) =>
